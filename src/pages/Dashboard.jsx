@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import WorldContour from '../components/WorldContour.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 
@@ -11,7 +11,6 @@ export default function Dashboard() {
   const displayName =
     profile?.username ??
     user?.user_metadata?.username ??
-    user?.email?.split('@')[0] ??
     'traveller'
 
   async function handleSignOut() {
@@ -44,24 +43,32 @@ export default function Dashboard() {
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
           <span className="font-display text-xl text-white">Wayra</span>
         </Link>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="btn-ghost"
-        >
-          {signingOut ? 'Signing out…' : 'Sign out'}
-        </button>
+        <nav className="flex items-center gap-2 sm:gap-6">
+          <NavLink to="/dashboard" className={navClass} end>
+            Home
+          </NavLink>
+          <NavLink to="/map" className={navClass}>
+            Map
+          </NavLink>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="btn-ghost"
+          >
+            {signingOut ? 'Signing out…' : 'Sign out'}
+          </button>
+        </nav>
       </header>
 
-      <section className="relative z-10 mx-auto max-w-4xl px-6 pb-20 pt-10 text-center sm:pt-16">
-        <div className="mb-6 flex items-center justify-center gap-3 text-[11px] font-medium tracking-[0.32em] text-gold">
+      <section className="relative z-10 mx-auto max-w-4xl px-6 pb-20 pt-6 text-center sm:pt-10">
+        <div className="mb-5 flex items-center justify-center gap-3 text-[11px] font-medium tracking-[0.32em] text-gold">
           <span className="h-px w-8 bg-gold/60" />
           <span>YOUR JOURNEY</span>
           <span className="h-px w-8 bg-gold/60" />
         </div>
 
-        <h1 className="headline text-balance text-5xl leading-[1.05] sm:text-6xl">
+        <h1 className="headline text-balance text-3xl leading-tight sm:text-4xl">
           Welcome back,{' '}
           <span className="italic">
             <span className="bg-gradient-to-r from-gold via-gold-soft to-gold bg-clip-text text-transparent">
@@ -71,19 +78,44 @@ export default function Dashboard() {
           .
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-mist/80 sm:text-lg">
+        <div className="mt-3 flex items-center justify-center gap-2 text-sm text-mist/70">
+          <span>Signed in as {displayName}</span>
+          <span className="text-navy-line">•</span>
+          <Link
+            to="/profile"
+            className="text-teal-soft transition-colors hover:text-teal"
+          >
+            Edit profile
+          </Link>
+        </div>
+
+        <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-mist/80">
           Your map is waiting. Trips, pins, and shared plans will land here soon —
           for now, everything's set up and ready for your first journey together.
         </p>
 
-        <div className="mx-auto mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
           <PlaceholderCard label="Trips" hint="Start a new journey" />
-          <PlaceholderCard label="Countries" hint="Pin the map" />
+          <Link
+            to="/map"
+            className="group rounded-2xl border border-teal/30 bg-teal/5 p-6 text-left shadow-soft backdrop-blur-sm transition-colors hover:border-teal/60 hover:bg-teal/10"
+          >
+            <div className="text-[11px] tracking-[0.32em] text-teal-soft">COUNTRIES</div>
+            <div className="mt-3 font-display text-2xl text-white">Open map</div>
+            <div className="mt-1 text-sm text-mist/70">Pin the world</div>
+          </Link>
           <PlaceholderCard label="Activities" hint="Vote on plans" />
         </div>
       </section>
     </main>
   )
+}
+
+function navClass({ isActive }) {
+  return [
+    'text-sm tracking-wide transition-colors',
+    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+  ].join(' ')
 }
 
 function PlaceholderCard({ label, hint }) {

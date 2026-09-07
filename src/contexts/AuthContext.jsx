@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
 
 const AuthContext = createContext(null)
@@ -28,25 +28,31 @@ export function AuthProvider({ children }) {
   }, [])
 
   const user = session?.user ?? null
+  const userId = user?.id ?? null
 
-  useEffect(() => {
-    if (!user) {
+  const loadProfile = useCallback(async () => {
+    if (!userId) {
       setProfile(null)
-      return
+      return null
     }
-    let cancelled = false
-    supabase
+    const { data } = await supabase
       .from('profiles')
       .select('id, user_id, username, avatar_url')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setProfile(data ?? null)
-      })
+    setProfile(data ?? null)
+    return data ?? null
+  }, [userId])
+
+  useEffect(() => {
+    let cancelled = false
+    loadProfile().catch(() => {
+      if (!cancelled) setProfile(null)
+    })
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [loadProfile])
 
   const value = useMemo(
     () => ({
@@ -54,6 +60,7 @@ export function AuthProvider({ children }) {
       user,
       profile,
       loading,
+      refreshProfile: loadProfile,
       async signIn({ email, password }) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -83,7 +90,7 @@ export function AuthProvider({ children }) {
         if (error) throw error
       },
     }),
-    [session, user, profile, loading],
+    [session, user, profile, loading, loadProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
