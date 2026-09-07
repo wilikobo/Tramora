@@ -10,10 +10,12 @@ export default function Trips() {
   const navigate = useNavigate()
 
   const [trips, setTrips] = useState([])
+  const [partnerNames, setPartnerNames] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [tripToDelete, setTripToDelete] = useState(null)
+  const [tripToInvite, setTripToInvite] = useState(null)
   const [signingOut, setSigningOut] = useState(false)
 
   const displayName = profile?.username ?? user?.user_metadata?.username ?? 'traveller'
@@ -28,8 +30,31 @@ export default function Trips() {
       .order('created_at', { ascending: false })
     if (readError) {
       setError(readError.message)
+      setLoading(false)
+      return
+    }
+    const rows = data ?? []
+    setTrips(rows)
+
+    const partnerIds = Array.from(
+      new Set(
+        rows
+          .map((t) => (t.user1_id === user.id ? t.user2_id : t.user1_id))
+          .filter(Boolean),
+      ),
+    )
+    if (partnerIds.length > 0) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('user_id, username')
+        .in('user_id', partnerIds)
+      const map = {}
+      ;(profs ?? []).forEach((p) => {
+        map[p.user_id] = p.username
+      })
+      setPartnerNames(map)
     } else {
-      setTrips(data ?? [])
+      setPartnerNames({})
     }
     setLoading(false)
   }
@@ -119,15 +144,20 @@ export default function Trips() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {trips.map((trip) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  isOwner={trip.user1_id === user?.id}
-                  onOpen={() => navigate(`/trips/${trip.id}`)}
-                  onDelete={() => setTripToDelete(trip)}
-                />
-              ))}
+              {trips.map((trip) => {
+                const partnerId = trip.user1_id === user?.id ? trip.user2_id : trip.user1_id
+                return (
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    isOwner={trip.user1_id === user?.id}
+                    partnerName={partnerId ? partnerNames[partnerId] : null}
+                    onOpen={() => navigate(`/trips/${trip.id}`)}
+                    onDelete={() => setTripToDelete(trip)}
+                    onInvite={() => setTripToInvite(trip)}
+                  />
+                )
+              })}
             </div>
           )}
         </div>
@@ -159,6 +189,21 @@ export default function Trips() {
           />
         ) : null}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {tripToInvite ? (
+          <InviteFriendModal
+            trip={tripToInvite}
+            onClose={() => setTripToInvite(null)}
+            onSaved={(updated) => {
+              setTrips((prev) =>
+                prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)),
+              )
+              setTripToInvite(null)
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
     </main>
   )
 }
@@ -170,7 +215,10 @@ function navClass({ isActive }) {
   ].join(' ')
 }
 
-function TripCard({ trip, isOwner, onOpen, onDelete }) {
+function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
+  const hasPartner = Boolean(trip.user2_id)
+  const isPending = !hasPartner && Boolean(trip.invited_email)
+
   return (
     <div className="group relative flex h-full flex-col rounded-2xl border border-navy-line bg-navy-soft/50 shadow-soft backdrop-blur-sm transition-colors hover:border-gold/50 hover:bg-gold/5">
       <button
@@ -191,10 +239,18 @@ function TripCard({ trip, isOwner, onOpen, onDelete }) {
         </div>
         <div className="mt-3 font-display text-2xl text-white">{trip.name}</div>
         <div className="mt-2 text-sm text-mist/60">
-          {trip.invited_email ? (
-            <>Invited: <span className="text-mist/80">{trip.invited_email}</span></>
-          ) : trip.user2_id ? (
-            'Two travellers'
+          {hasPartner ? (
+            <>
+              With{' '}
+              <span className="text-mist/90">
+                {partnerName ? `@${partnerName}` : 'your travel partner'}
+              </span>
+            </>
+          ) : isPending ? (
+            <>
+              Pending:{' '}
+              <span className="text-mist/80">{trip.invited_email}</span>
+            </>
           ) : (
             'Invite a partner to plan together'
           )}
@@ -203,15 +259,129 @@ function TripCard({ trip, isOwner, onOpen, onDelete }) {
           Open trip map →
         </div>
       </button>
-      <div className="mx-6 mb-4 border-t border-navy-line/70 pt-3">
+      <div className="mx-6 mb-4 flex flex-wrap items-center justify-between gap-3 border-t border-navy-line/70 pt-3">
         <Link
           to={`/trips/${trip.id}/activities`}
           className="text-xs tracking-wide text-teal-soft transition-colors hover:text-teal"
         >
           View activities →
         </Link>
+        {!hasPartner && isOwner ? (
+          <button
+            type="button"
+            onClick={onInvite}
+            className="rounded-full border border-teal/30 bg-teal/10 px-3 py-1 text-xs tracking-wide text-teal-soft transition-colors hover:border-teal/60 hover:bg-teal/20 hover:text-white"
+          >
+            {isPending ? 'Update invite' : 'Invite friend'}
+          </button>
+        ) : null}
       </div>
     </div>
+  )
+}
+
+function InviteFriendModal({ trip, onClose, onSaved }) {
+  const [email, setEmail] = useState(trip.invited_email ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    const trimmed = email.trim()
+    if (!trimmed) {
+      setError('Please enter an email address.')
+      return
+    }
+    setSaving(true)
+    setError(null)
+    const { data, error: updateError } = await supabase
+      .from('trips')
+      .update({ invited_email: trimmed })
+      .eq('id', trip.id)
+      .select('id, name, user1_id, user2_id, invited_email, created_at')
+      .single()
+    if (updateError) {
+      setError(updateError.message)
+      setSaving(false)
+      return
+    }
+    onSaved(data)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.96, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+        className="w-full max-w-md rounded-2xl border border-teal/20 bg-navy-soft/95 p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <div className="text-[11px] tracking-[0.32em] text-teal-soft">INVITE FRIEND</div>
+            <h2 className="mt-2 font-display text-2xl text-white">
+              Invite to “{trip.name}”
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-navy-line px-3 py-1 text-xs text-mist/70 hover:border-teal/40 hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="invite-email" className="auth-label">
+              Friend's email
+            </label>
+            <input
+              id="invite-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="auth-input"
+              placeholder="partner@example.com"
+              autoFocus
+              required
+            />
+            <p className="mt-1.5 text-xs text-mist/50">
+              They'll join the trip once they sign up with this email.
+            </p>
+          </div>
+
+          {error ? (
+            <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+              {error}
+            </p>
+          ) : null}
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm text-mist/70 hover:text-white"
+              disabled={saving}
+            >
+              Cancel
+            </button>
+            <button type="submit" disabled={saving} className="btn-primary">
+              {saving ? 'Saving…' : 'Send invite'}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
   )
 }
 

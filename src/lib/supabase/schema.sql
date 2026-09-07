@@ -416,30 +416,32 @@ create table if not exists public.trip_budget (
 
 alter table public.trip_budget enable row level security;
 
-drop policy if exists "members read trip_budget" on public.trip_budget;
-create policy "members read trip_budget"
-  on public.trip_budget for select
-  to authenticated
-  using (public.is_trip_member(trip_id));
-
+-- Legacy per-command policies are replaced by a single FOR ALL policy below.
+drop policy if exists "members read trip_budget"   on public.trip_budget;
 drop policy if exists "members insert trip_budget" on public.trip_budget;
-create policy "members insert trip_budget"
-  on public.trip_budget for insert
-  to authenticated
-  with check (public.is_trip_member(trip_id));
-
 drop policy if exists "members update trip_budget" on public.trip_budget;
-create policy "members update trip_budget"
-  on public.trip_budget for update
-  to authenticated
-  using (public.is_trip_member(trip_id))
-  with check (public.is_trip_member(trip_id));
-
 drop policy if exists "members delete trip_budget" on public.trip_budget;
-create policy "members delete trip_budget"
-  on public.trip_budget for delete
+
+-- Trip members can read, insert, update and delete their trip's budget.
+-- Written as a self-contained subquery on public.trips so upserts succeed
+-- even before the helper function's search_path has been re-evaluated.
+drop policy if exists "Users can manage trip budget" on public.trip_budget;
+create policy "Users can manage trip budget"
+  on public.trip_budget
+  for all
   to authenticated
-  using (public.is_trip_member(trip_id));
+  using (
+    trip_id in (
+      select id from public.trips
+      where user1_id = auth.uid() or user2_id = auth.uid()
+    )
+  )
+  with check (
+    trip_id in (
+      select id from public.trips
+      where user1_id = auth.uid() or user2_id = auth.uid()
+    )
+  );
 
 -- =============================================================================
 -- Storage: wayra-memories bucket
