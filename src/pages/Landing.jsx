@@ -1,4 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import WorldContour from '../components/WorldContour.jsx'
 import FeatureRow from '../components/FeatureRow.jsx'
 
@@ -51,7 +52,7 @@ export default function Landing() {
         <nav className="hidden items-center gap-8 text-sm text-muted sm:flex">
           <a className="transition hover:text-white" href="#story">Our story</a>
           <a className="transition hover:text-white" href="#journeys">Journeys</a>
-          <a className="transition hover:text-white" href="#login">Sign in</a>
+          <Link className="transition hover:text-white" to="/login">Sign in</Link>
         </nav>
       </header>
 
@@ -118,12 +119,12 @@ export default function Landing() {
           transition={{ duration: 0.9, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-4"
         >
-          <a href="#login" className="btn-primary">
+          <Link to="/login" className="btn-primary">
             Sign in to your journey
-          </a>
-          <a href="#story" className="btn-ghost">
-            How Wayra works
-          </a>
+          </Link>
+          <Link to="/register" className="btn-ghost">
+            Create an account
+          </Link>
         </motion.div>
 
         {/* Compass rule */}

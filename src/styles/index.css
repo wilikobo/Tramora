@@ -36,4 +36,26 @@
     @apply inline-flex items-center justify-center rounded-full border border-navy-line px-6 py-3
            font-medium text-mist transition-all duration-300 hover:border-teal/50 hover:text-white;
   }
+
+  .btn-oauth {
+    @apply inline-flex items-center justify-center gap-3 rounded-full border border-navy-line
+           bg-navy-deep/60 px-6 py-3 font-medium text-mist transition-all duration-300
+           hover:border-teal/40 hover:text-white focus:outline-none focus-visible:ring-2
+           focus-visible:ring-teal-soft focus-visible:ring-offset-2 focus-visible:ring-offset-navy;
+  }
+
+  .auth-label {
+    @apply mb-2 block text-[11px] font-medium uppercase tracking-[0.28em] text-muted;
+  }
+
+  .auth-input {
+    @apply w-full rounded-xl border border-navy-line bg-navy-deep/60 px-4 py-3 text-mist
+           placeholder:text-muted/50 transition-colors duration-200
+           focus:border-teal/60 focus:outline-none focus:ring-2 focus:ring-teal/20;
+  }
+}
+
+.btn-primary:disabled,
+.btn-oauth:disabled {
+  @apply cursor-not-allowed opacity-60;
 }
