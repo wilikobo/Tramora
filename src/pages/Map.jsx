@@ -254,6 +254,14 @@ export default function Map() {
               >
                 + Add country
               </button>
+              {isSharedTrip ? (
+                <Link
+                  to={`/trips/${tripId}/activities`}
+                  className="rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[11px] tracking-wide text-gold transition-colors hover:border-gold/70 hover:bg-gold/15 hover:text-white"
+                >
+                  Activities →
+                </Link>
+              ) : null}
             </>
           ) : null}
         </div>

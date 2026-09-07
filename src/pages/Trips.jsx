@@ -176,7 +176,7 @@ function TripCard({ trip, isOwner, onOpen, onDelete }) {
       <button
         type="button"
         onClick={onDelete}
-        className="absolute right-3 top-3 rounded-full border border-navy-line bg-navy-deep/70 px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
+        className="absolute right-3 top-3 z-10 rounded-full border border-navy-line bg-navy-deep/70 px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
         aria-label={`Delete ${trip.name}`}
       >
         ✕
@@ -184,7 +184,7 @@ function TripCard({ trip, isOwner, onOpen, onDelete }) {
       <button
         type="button"
         onClick={onOpen}
-        className="flex h-full flex-col rounded-2xl p-6 text-left"
+        className="flex h-full flex-col rounded-2xl p-6 pb-4 text-left"
       >
         <div className="text-[11px] tracking-[0.32em] text-gold">
           {isOwner ? 'YOU HOST · SHARED' : 'SHARED'}
@@ -203,6 +203,14 @@ function TripCard({ trip, isOwner, onOpen, onDelete }) {
           Open trip map →
         </div>
       </button>
+      <div className="mx-6 mb-4 border-t border-navy-line/70 pt-3">
+        <Link
+          to={`/trips/${trip.id}/activities`}
+          className="text-xs tracking-wide text-teal-soft transition-colors hover:text-teal"
+        >
+          View activities →
+        </Link>
+      </div>
     </div>
   )
 }

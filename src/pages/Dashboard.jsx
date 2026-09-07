@@ -1,12 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import WorldContour from '../components/WorldContour.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { supabase } from '../lib/supabase.js'
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [signingOut, setSigningOut] = useState(false)
+  const [stats, setStats] = useState({ trips: 0, visited: 0, planned: 0 })
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user?.id) return
+    let cancelled = false
+    setStatsLoading(true)
+
+    Promise.all([
+      supabase.from('trips').select('id', { count: 'exact', head: true }),
+      supabase
+        .from('countries')
+        .select('country_code', { count: 'exact', head: true })
+        .eq('status', 'done'),
+      supabase.from('activities').select('id', { count: 'exact', head: true }),
+    ])
+      .then(([tripsRes, visitedRes, actRes]) => {
+        if (cancelled) return
+        setStats({
+          trips: tripsRes.count ?? 0,
+          visited: visitedRes.count ?? 0,
+          planned: actRes.count ?? 0,
+        })
+      })
+      .finally(() => {
+        if (!cancelled) setStatsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
 
   const displayName =
     profile?.username ??
@@ -97,6 +130,12 @@ export default function Dashboard() {
           for now, everything's set up and ready for your first journey together.
         </p>
 
+        <div className="mx-auto mt-10 flex max-w-md items-stretch justify-center gap-3 sm:gap-6">
+          <Stat value={stats.trips} label="Trips" tone="teal" loading={statsLoading} />
+          <Stat value={stats.visited} label="Countries visited" tone="gold" loading={statsLoading} />
+          <Stat value={stats.planned} label="Activities planned" tone="teal" loading={statsLoading} />
+        </div>
+
         <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
           <Link
             to="/trips"
@@ -114,7 +153,14 @@ export default function Dashboard() {
             <div className="mt-3 font-display text-2xl text-white">Open map</div>
             <div className="mt-1 text-sm text-mist/70">Pin the world</div>
           </Link>
-          <PlaceholderCard label="Activities" hint="Vote on plans" />
+          <Link
+            to="/trips"
+            className="group rounded-2xl border border-navy-line bg-navy-soft/50 p-6 text-left shadow-soft backdrop-blur-sm transition-colors hover:border-teal/50 hover:bg-teal/5"
+          >
+            <div className="text-[11px] tracking-[0.32em] text-teal-soft">ACTIVITIES</div>
+            <div className="mt-3 font-display text-2xl text-white">Vote on plans</div>
+            <div className="mt-1 text-sm text-mist/70">Open a trip to see activities</div>
+          </Link>
         </div>
       </section>
     </main>
@@ -128,12 +174,17 @@ function navClass({ isActive }) {
   ].join(' ')
 }
 
-function PlaceholderCard({ label, hint }) {
+function Stat({ value, label, tone, loading }) {
+  const color = tone === 'gold' ? 'text-gold' : 'text-teal-soft'
   return (
-    <div className="rounded-2xl border border-navy-line bg-navy-soft/50 p-6 text-left shadow-soft backdrop-blur-sm">
-      <div className="text-[11px] tracking-[0.32em] text-muted">{label.toUpperCase()}</div>
-      <div className="mt-3 font-display text-2xl text-white">Soon</div>
-      <div className="mt-1 text-sm text-mist/60">{hint}</div>
+    <div className="flex flex-1 flex-col items-center rounded-xl border border-navy-line bg-navy-soft/40 px-3 py-3 text-center backdrop-blur-sm">
+      <div className={['font-display text-3xl leading-none', color].join(' ')}>
+        {loading ? '—' : value}
+      </div>
+      <div className="mt-1.5 text-[10px] font-medium tracking-[0.24em] text-mist/60">
+        {label.toUpperCase()}
+      </div>
     </div>
   )
 }
+

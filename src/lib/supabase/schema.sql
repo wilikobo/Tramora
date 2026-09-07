@@ -64,8 +64,13 @@ create table if not exists public.activities (
   date_end    date,
   budget      numeric(12, 2),
   priority    text not null default 'nice' check (priority in ('must', 'nice')),
+  status      text not null default 'planned' check (status in ('planned', 'done')),
   created_at  timestamptz not null default now()
 );
+
+alter table public.activities
+  add column if not exists status text not null default 'planned'
+  check (status in ('planned', 'done'));
 
 create index if not exists activities_country_idx on public.activities(country_id);
 
