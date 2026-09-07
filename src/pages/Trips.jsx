@@ -13,6 +13,7 @@ export default function Trips() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [tripToDelete, setTripToDelete] = useState(null)
   const [signingOut, setSigningOut] = useState(false)
 
   const displayName = profile?.username ?? user?.user_metadata?.username ?? 'traveller'
@@ -124,6 +125,7 @@ export default function Trips() {
                   trip={trip}
                   isOwner={trip.user1_id === user?.id}
                   onOpen={() => navigate(`/trips/${trip.id}`)}
+                  onDelete={() => setTripToDelete(trip)}
                 />
               ))}
             </div>
@@ -144,6 +146,19 @@ export default function Trips() {
           />
         ) : null}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {tripToDelete ? (
+          <DeleteTripModal
+            trip={tripToDelete}
+            onClose={() => setTripToDelete(null)}
+            onDeleted={(id) => {
+              setTrips((prev) => prev.filter((t) => t.id !== id))
+              setTripToDelete(null)
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
     </main>
   )
 }
@@ -155,30 +170,110 @@ function navClass({ isActive }) {
   ].join(' ')
 }
 
-function TripCard({ trip, isOwner, onOpen }) {
+function TripCard({ trip, isOwner, onOpen, onDelete }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="group flex h-full flex-col rounded-2xl border border-navy-line bg-navy-soft/50 p-6 text-left shadow-soft backdrop-blur-sm transition-colors hover:border-teal/50 hover:bg-teal/5"
+    <div className="group relative flex h-full flex-col rounded-2xl border border-navy-line bg-navy-soft/50 shadow-soft backdrop-blur-sm transition-colors hover:border-gold/50 hover:bg-gold/5">
+      <button
+        type="button"
+        onClick={onDelete}
+        className="absolute right-3 top-3 rounded-full border border-navy-line bg-navy-deep/70 px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
+        aria-label={`Delete ${trip.name}`}
+      >
+        ✕
+      </button>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex h-full flex-col rounded-2xl p-6 text-left"
+      >
+        <div className="text-[11px] tracking-[0.32em] text-gold">
+          {isOwner ? 'YOU HOST · SHARED' : 'SHARED'}
+        </div>
+        <div className="mt-3 font-display text-2xl text-white">{trip.name}</div>
+        <div className="mt-2 text-sm text-mist/60">
+          {trip.invited_email ? (
+            <>Invited: <span className="text-mist/80">{trip.invited_email}</span></>
+          ) : trip.user2_id ? (
+            'Two travellers'
+          ) : (
+            'Invite a partner to plan together'
+          )}
+        </div>
+        <div className="mt-6 text-xs text-mist/50 transition-colors group-hover:text-gold">
+          Open trip map →
+        </div>
+      </button>
+    </div>
+  )
+}
+
+function DeleteTripModal({ trip, onClose, onDeleted }) {
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError(null)
+    const { error: delError } = await supabase.from('trips').delete().eq('id', trip.id)
+    if (delError) {
+      setError(delError.message)
+      setDeleting(false)
+      return
+    }
+    onDeleted(trip.id)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      onClick={onClose}
     >
-      <div className="text-[11px] tracking-[0.32em] text-teal-soft">
-        {isOwner ? 'YOU HOST' : 'SHARED'}
-      </div>
-      <div className="mt-3 font-display text-2xl text-white">{trip.name}</div>
-      <div className="mt-2 text-sm text-mist/60">
-        {trip.invited_email ? (
-          <>Invited: <span className="text-mist/80">{trip.invited_email}</span></>
-        ) : trip.user2_id ? (
-          'Two travellers'
-        ) : (
-          'Just you, for now'
-        )}
-      </div>
-      <div className="mt-6 text-xs text-mist/50 transition-colors group-hover:text-teal-soft">
-        Open map →
-      </div>
-    </button>
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.96, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+        className="w-full max-w-md rounded-2xl border border-red-400/30 bg-navy-soft/95 p-6 shadow-[0_0_80px_-20px_rgba(248,113,113,0.35)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-[11px] tracking-[0.32em] text-red-200">DELETE TRIP</div>
+        <h2 className="mt-2 font-display text-2xl text-white">
+          Delete “{trip.name}”?
+        </h2>
+        <p className="mt-3 text-sm text-mist/70">
+          This removes the trip and every country and activity linked to it.
+          Your travel partner will lose access too. This can’t be undone.
+        </p>
+
+        {error ? (
+          <p className="mt-4 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            {error}
+          </p>
+        ) : null}
+
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-mist/70 hover:text-white"
+            disabled={deleting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="inline-flex items-center justify-center rounded-full bg-red-500/90 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-60"
+          >
+            {deleting ? 'Deleting…' : 'Delete trip'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

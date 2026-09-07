@@ -31,13 +31,33 @@ function nameOf(geo) {
   return geo.properties?.name ?? 'Unknown'
 }
 
+let COUNTRIES_INDEX = null
+async function loadCountriesIndex() {
+  if (COUNTRIES_INDEX) return COUNTRIES_INDEX
+  const res = await fetch(GEO_URL)
+  const topo = await res.json()
+  const geometries = topo?.objects?.countries?.geometries ?? []
+  const list = geometries
+    .map((g) => ({
+      code: String(g.id ?? '').padStart(3, '0'),
+      name: g.properties?.name ?? 'Unknown',
+    }))
+    .filter((c) => c.code && c.name !== 'Unknown')
+    .sort((a, b) => a.name.localeCompare(b.name))
+  COUNTRIES_INDEX = list
+  return list
+}
+
 export default function Map() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const { tripId: tripIdParam } = useParams()
 
+  const isSharedTrip = Boolean(tripIdParam)
+
   const [tripId, setTripId] = useState(null)
   const [tripName, setTripName] = useState(null)
+  const [invitedEmail, setInvitedEmail] = useState(null)
   const [tripLoading, setTripLoading] = useState(true)
   const [tripError, setTripError] = useState(null)
 
@@ -45,6 +65,7 @@ export default function Map() {
   const [selected, setSelected] = useState(null)
   const [tooltip, setTooltip] = useState(null)
   const [signingOut, setSigningOut] = useState(false)
+  const [showAddCountry, setShowAddCountry] = useState(false)
 
   const displayName = profile?.username ?? user?.user_metadata?.username ?? 'traveller'
 
@@ -53,12 +74,18 @@ export default function Map() {
     let cancelled = false
     setTripLoading(true)
     setTripError(null)
+    // Reset per-trip state so we never flash the previous trip's pins
+    setCountries({})
+    setSelected(null)
+    setTripId(null)
+    setTripName(null)
+    setInvitedEmail(null)
 
     const resolveTrip = async () => {
       if (tripIdParam) {
         const { data, error } = await supabase
           .from('trips')
-          .select('id, name')
+          .select('id, name, invited_email, user1_id, user2_id')
           .eq('id', tripIdParam)
           .single()
         if (error) throw error
@@ -72,6 +99,7 @@ export default function Map() {
         if (cancelled) return
         setTripId(trip.id)
         setTripName(trip.name)
+        setInvitedEmail(trip.invited_email ?? null)
         const { data, error } = await supabase
           .from('countries')
           .select('id, country_code, country_name, status, notes')
@@ -143,8 +171,17 @@ export default function Map() {
     [countries, tripId, user?.id],
   )
 
+  const accent = isSharedTrip
+    ? { border: 'border-gold/40', ring: 'shadow-[0_0_60px_-25px_rgba(245,158,11,0.55)]', label: 'text-gold', hover: 'hover:border-gold/70', bgTint: 'bg-gold/5' }
+    : { border: 'border-teal/40', ring: 'shadow-[0_0_60px_-25px_rgba(20,184,166,0.55)]', label: 'text-teal-soft', hover: 'hover:border-teal/70', bgTint: 'bg-teal/5' }
+
   return (
-    <main className="fixed inset-0 overflow-hidden bg-navy text-mist">
+    <main
+      className={[
+        'fixed inset-0 overflow-hidden bg-navy text-mist',
+        isSharedTrip ? 'ring-inset ring-1 ring-gold/20' : '',
+      ].join(' ')}
+    >
       <WorldMap
         countries={countries}
         onHover={setTooltip}
@@ -180,16 +217,58 @@ export default function Map() {
         </div>
       </header>
 
+      {/* Trip context banner — makes personal vs shared unmistakable */}
+      <div className="pointer-events-none absolute inset-x-0 top-20 z-30 flex justify-center px-4">
+        <div
+          className={[
+            'pointer-events-auto flex items-center gap-3 rounded-full border bg-navy-deep/80 px-4 py-2 backdrop-blur',
+            accent.border,
+            accent.ring,
+          ].join(' ')}
+        >
+          <span className={['text-[10px] font-medium tracking-[0.32em]', accent.label].join(' ')}>
+            {isSharedTrip ? 'SHARED TRIP' : 'MY JOURNEY'}
+          </span>
+          <span className="h-3 w-px bg-navy-line" />
+          <span className="text-xs text-white">
+            {isSharedTrip ? tripName ?? '…' : 'Your travel history'}
+          </span>
+          {isSharedTrip && invitedEmail ? (
+            <>
+              <span className="h-3 w-px bg-navy-line" />
+              <span className="text-xs text-mist/70">with {invitedEmail}</span>
+            </>
+          ) : null}
+          {tripId ? (
+            <>
+              <span className="h-3 w-px bg-navy-line" />
+              <button
+                type="button"
+                onClick={() => setShowAddCountry(true)}
+                className={[
+                  'rounded-full border px-3 py-1 text-[11px] tracking-wide text-white transition-colors',
+                  accent.border,
+                  accent.hover,
+                  accent.bgTint,
+                ].join(' ')}
+              >
+                + Add country
+              </button>
+            </>
+          ) : null}
+        </div>
+      </div>
+
       <Legend />
 
       {tripLoading ? (
-        <div className="pointer-events-none absolute inset-x-0 top-24 z-30 mx-auto max-w-xs rounded-full border border-navy-line bg-navy-deep/70 px-4 py-2 text-center text-[11px] tracking-[0.32em] text-muted backdrop-blur">
+        <div className="pointer-events-none absolute inset-x-0 top-36 z-30 mx-auto max-w-xs rounded-full border border-navy-line bg-navy-deep/70 px-4 py-2 text-center text-[11px] tracking-[0.32em] text-muted backdrop-blur">
           LOADING YOUR PINS…
         </div>
       ) : null}
 
       {tripError ? (
-        <div className="absolute inset-x-0 top-24 z-30 mx-auto max-w-md rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-center text-sm text-red-200">
+        <div className="absolute inset-x-0 top-36 z-30 mx-auto max-w-md rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-center text-sm text-red-200">
           {tripError}
         </div>
       ) : null}
@@ -217,6 +296,20 @@ export default function Map() {
             existing={countries[selected.code]}
             onClose={() => setSelected(null)}
             onSave={upsertCountry}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAddCountry ? (
+          <AddCountryModal
+            key="add-country"
+            existingCodes={countries}
+            onClose={() => setShowAddCountry(false)}
+            onPick={(picked) => {
+              setShowAddCountry(false)
+              setSelected(picked)
+            }}
           />
         ) : null}
       </AnimatePresence>
@@ -711,5 +804,116 @@ function StatusButton({ active, color, onClick, label }) {
       />
       {label}
     </button>
+  )
+}
+
+function AddCountryModal({ existingCodes, onClose, onPick }) {
+  const [all, setAll] = useState([])
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    loadCountriesIndex()
+      .then((list) => {
+        if (cancelled) return
+        setAll(list)
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message ?? 'Could not load countries.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const q = query.trim().toLowerCase()
+  const filtered = q
+    ? all.filter((c) => c.name.toLowerCase().includes(q))
+    : all
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.96, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+        className="flex h-[70vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-teal/20 bg-navy-soft/95 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b border-navy-line px-5 py-4">
+          <div>
+            <div className="text-[11px] tracking-[0.32em] text-teal-soft">ADD COUNTRY</div>
+            <h2 className="mt-1 font-display text-xl text-white">Pick a destination</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-navy-line px-3 py-1 text-xs text-mist/70 hover:border-teal/40 hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="border-b border-navy-line px-5 py-3">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search countries…"
+            autoFocus
+            className="auth-input !py-2 text-sm"
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          {loading ? (
+            <p className="px-3 py-4 text-sm text-mist/60">Loading…</p>
+          ) : error ? (
+            <p className="mx-3 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+              {error}
+            </p>
+          ) : filtered.length === 0 ? (
+            <p className="px-3 py-4 text-sm text-mist/60">No matches.</p>
+          ) : (
+            <ul>
+              {filtered.map((c) => {
+                const already = existingCodes?.[c.code]
+                return (
+                  <li key={c.code}>
+                    <button
+                      type="button"
+                      onClick={() => onPick({ code: c.code, name: c.name })}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm text-mist transition-colors hover:bg-teal/5 hover:text-white"
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className="text-lg leading-none">{flagEmoji(c.code)}</span>
+                        <span>{c.name}</span>
+                      </span>
+                      {already ? (
+                        <span className="text-[10px] tracking-widest text-mist/50">
+                          {already.status?.toUpperCase()}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
