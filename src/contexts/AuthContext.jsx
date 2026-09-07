@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { seedDemoTrip } from '../lib/demoTrip.js'
 
 const AuthContext = createContext(null)
 
@@ -81,6 +82,12 @@ export function AuthProvider({ children }) {
             .insert({ user_id: newUser.id, username })
           if (profileError && profileError.code !== '23505') {
             throw profileError
+          }
+
+          try {
+            await seedDemoTrip(newUser.id)
+          } catch (seedError) {
+            console.warn('Demo trip seed failed:', seedError)
           }
         }
         return data

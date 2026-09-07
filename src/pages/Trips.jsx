@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import WorldContour from '../components/WorldContour.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+import { DEMO_TRIP_NAME } from '../lib/demoTrip.js'
 
 export default function Trips() {
   const { user, profile, signOut } = useAuth()
@@ -218,6 +219,7 @@ function navClass({ isActive }) {
 function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
   const hasPartner = Boolean(trip.user2_id)
   const isPending = !hasPartner && Boolean(trip.invited_email)
+  const isDemo = trip.name === DEMO_TRIP_NAME
 
   return (
     <div className="group relative flex h-full flex-col rounded-2xl border border-navy-line bg-navy-soft/50 shadow-soft backdrop-blur-sm transition-colors hover:border-gold/50 hover:bg-gold/5">
@@ -234,8 +236,16 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
         onClick={onOpen}
         className="flex h-full flex-col rounded-2xl p-6 pb-4 text-left"
       >
-        <div className="text-[11px] tracking-[0.32em] text-gold">
-          {isOwner ? 'YOU HOST · SHARED' : 'SHARED'}
+        <div className="flex items-center gap-2 text-[11px] tracking-[0.32em] text-gold">
+          <span>{isOwner ? 'YOU HOST · SHARED' : 'SHARED'}</span>
+          {isDemo ? (
+            <span
+              title="Sample trip — feel free to delete it"
+              className="rounded-full border border-mist/20 bg-mist/5 px-2 py-0.5 text-[9px] tracking-[0.28em] text-mist/60"
+            >
+              DEMO
+            </span>
+          ) : null}
         </div>
         <div className="mt-3 font-display text-2xl text-white">{trip.name}</div>
         <div className="mt-2 text-sm text-mist/60">
