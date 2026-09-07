@@ -36,11 +36,11 @@ create index if not exists trips_user1_idx on public.trips(user1_id);
 create index if not exists trips_user2_idx on public.trips(user2_id);
 
 -- -----------------------------------------------------------------------------
--- countries (per trip)
+-- countries (personal when trip_id is null, otherwise scoped to a trip)
 -- -----------------------------------------------------------------------------
 create table if not exists public.countries (
   id            uuid primary key default gen_random_uuid(),
-  trip_id       uuid not null references public.trips(id) on delete cascade,
+  trip_id       uuid references public.trips(id) on delete cascade,
   country_code  text not null,
   country_name  text not null,
   status        text not null check (status in ('done', 'planned', 'wishlist')),
@@ -50,7 +50,17 @@ create table if not exists public.countries (
   unique (trip_id, country_code)
 );
 
-create index if not exists countries_trip_idx on public.countries(trip_id);
+-- Personal countries: trip_id IS NULL, owned by added_by.
+alter table public.countries alter column trip_id drop not null;
+
+create index if not exists countries_trip_idx     on public.countries(trip_id);
+create index if not exists countries_personal_idx on public.countries(added_by) where trip_id is null;
+
+-- One row per personal country per user (unique across null trip_ids, which
+-- Postgres would otherwise treat as always distinct).
+create unique index if not exists countries_personal_code_unique
+  on public.countries (added_by, country_code)
+  where trip_id is null;
 
 -- -----------------------------------------------------------------------------
 -- activities (per country)
@@ -170,32 +180,52 @@ create policy "members delete trip"
   using (auth.uid() = user1_id or auth.uid() = user2_id);
 
 -- -----------------------------------------------------------------------------
--- countries policies (trip members)
+-- countries policies
+-- Personal rows (trip_id IS NULL) belong to added_by; trip rows are visible
+-- to trip members.
 -- -----------------------------------------------------------------------------
 drop policy if exists "members read countries" on public.countries;
 create policy "members read countries"
   on public.countries for select
   to authenticated
-  using (public.is_trip_member(trip_id));
+  using (
+    (trip_id is null and added_by = auth.uid())
+    or (trip_id is not null and public.is_trip_member(trip_id))
+  );
 
 drop policy if exists "members insert countries" on public.countries;
 create policy "members insert countries"
   on public.countries for insert
   to authenticated
-  with check (public.is_trip_member(trip_id) and added_by = auth.uid());
+  with check (
+    added_by = auth.uid()
+    and (
+      trip_id is null
+      or public.is_trip_member(trip_id)
+    )
+  );
 
 drop policy if exists "members update countries" on public.countries;
 create policy "members update countries"
   on public.countries for update
   to authenticated
-  using (public.is_trip_member(trip_id))
-  with check (public.is_trip_member(trip_id));
+  using (
+    (trip_id is null and added_by = auth.uid())
+    or (trip_id is not null and public.is_trip_member(trip_id))
+  )
+  with check (
+    (trip_id is null and added_by = auth.uid())
+    or (trip_id is not null and public.is_trip_member(trip_id))
+  );
 
 drop policy if exists "members delete countries" on public.countries;
 create policy "members delete countries"
   on public.countries for delete
   to authenticated
-  using (public.is_trip_member(trip_id));
+  using (
+    (trip_id is null and added_by = auth.uid())
+    or (trip_id is not null and public.is_trip_member(trip_id))
+  );
 
 -- -----------------------------------------------------------------------------
 -- activities policies (via parent country → trip)
@@ -208,7 +238,10 @@ create policy "members read activities"
     exists (
       select 1 from public.countries c
       where c.id = activities.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -220,7 +253,10 @@ create policy "members insert activities"
     exists (
       select 1 from public.countries c
       where c.id = activities.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -232,14 +268,20 @@ create policy "members update activities"
     exists (
       select 1 from public.countries c
       where c.id = activities.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   )
   with check (
     exists (
       select 1 from public.countries c
       where c.id = activities.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -251,7 +293,10 @@ create policy "members delete activities"
     exists (
       select 1 from public.countries c
       where c.id = activities.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -268,7 +313,10 @@ create policy "members read votes"
       from public.activities a
       join public.countries  c on c.id = a.country_id
       where a.id = votes.activity_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -283,7 +331,10 @@ create policy "users insert own vote"
       from public.activities a
       join public.countries  c on c.id = a.country_id
       where a.id = votes.activity_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -326,7 +377,10 @@ create policy "members read memories"
     exists (
       select 1 from public.countries c
       where c.id = memories.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 
@@ -339,7 +393,10 @@ create policy "members insert memories"
     and exists (
       select 1 from public.countries c
       where c.id = memories.country_id
-        and public.is_trip_member(c.trip_id)
+        and (
+          (c.trip_id is null and c.added_by = auth.uid())
+          or (c.trip_id is not null and public.is_trip_member(c.trip_id))
+        )
     )
   );
 

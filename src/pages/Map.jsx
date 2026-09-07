@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import { getOrCreatePersonalTrip } from '../lib/personalTrip.js'
 import { flagEmoji } from '../lib/countryCodes.js'
 import TripTabs from '../components/TripTabs.jsx'
 
@@ -82,33 +81,45 @@ export default function Map() {
     setTripName(null)
     setInvitedEmail(null)
 
-    const resolveTrip = async () => {
+    const load = async () => {
       if (tripIdParam) {
-        const { data, error } = await supabase
+        const { data: trip, error: tripErr } = await supabase
           .from('trips')
           .select('id, name, invited_email, user1_id, user2_id')
           .eq('id', tripIdParam)
           .single()
-        if (error) throw error
-        return data
-      }
-      return getOrCreatePersonalTrip(user.id)
-    }
-
-    resolveTrip()
-      .then(async (trip) => {
+        if (tripErr) throw tripErr
         if (cancelled) return
         setTripId(trip.id)
         setTripName(trip.name)
         setInvitedEmail(trip.invited_email ?? null)
+
         const { data, error } = await supabase
           .from('countries')
           .select('id, country_code, country_name, status, notes')
           .eq('trip_id', trip.id)
         if (error) throw error
+        return data ?? []
+      }
+
+      // Personal map: countries owned by the current user with no trip.
+      setTripId(null)
+      setTripName(null)
+      setInvitedEmail(null)
+      const { data, error } = await supabase
+        .from('countries')
+        .select('id, country_code, country_name, status, notes')
+        .is('trip_id', null)
+        .eq('added_by', user.id)
+      if (error) throw error
+      return data ?? []
+    }
+
+    load()
+      .then((rows) => {
         if (cancelled) return
         const map = {}
-        for (const row of data ?? []) {
+        for (const row of rows) {
           map[row.country_code] = row
         }
         setCountries(map)
@@ -136,7 +147,8 @@ export default function Map() {
 
   const upsertCountry = useCallback(
     async ({ code, name, status, notes }) => {
-      if (!tripId || !user?.id) return
+      if (!user?.id) return
+      if (isSharedTrip && !tripId) return
       const existing = countries[code]
       if (status === 'none') {
         if (existing) {
@@ -151,25 +163,35 @@ export default function Map() {
         return
       }
 
+      if (existing) {
+        const { data, error } = await supabase
+          .from('countries')
+          .update({ country_name: name, status, notes: notes || null })
+          .eq('id', existing.id)
+          .select('id, country_code, country_name, status, notes')
+          .single()
+        if (error) throw error
+        setCountries((prev) => ({ ...prev, [code]: data }))
+        return
+      }
+
       const payload = {
-        trip_id: tripId,
+        trip_id: isSharedTrip ? tripId : null,
         country_code: code,
         country_name: name,
         status,
         notes: notes || null,
         added_by: user.id,
       }
-
       const { data, error } = await supabase
         .from('countries')
-        .upsert(payload, { onConflict: 'trip_id,country_code' })
+        .insert(payload)
         .select('id, country_code, country_name, status, notes')
         .single()
-
       if (error) throw error
       setCountries((prev) => ({ ...prev, [code]: data }))
     },
-    [countries, tripId, user?.id],
+    [countries, isSharedTrip, tripId, user?.id],
   )
 
   const accent = isSharedTrip
@@ -240,7 +262,7 @@ export default function Map() {
               <span className="text-xs text-mist/70">with {invitedEmail}</span>
             </>
           ) : null}
-          {tripId ? (
+          {!tripLoading && (isSharedTrip ? tripId : true) ? (
             <>
               <span className="h-3 w-px bg-navy-line" />
               <button

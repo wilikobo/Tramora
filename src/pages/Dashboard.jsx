@@ -238,34 +238,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="mt-24 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-10 sm:gap-y-4">
-          <Link
-            to="/map"
-            className="text-base text-mist/80 transition-colors hover:text-teal"
-          >
-            Open your map  →
-          </Link>
-          <Link
-            to="/trips"
-            className="text-base text-mist/80 transition-colors hover:text-teal"
-          >
-            Plan a new trip →
-          </Link>
-          {latestTrip ? (
-            <Link
-              to={`/trips/${latestTrip.id}/memories`}
-              className="text-base text-mist/80 transition-colors hover:text-teal"
-            >
-              Add a memory →
-            </Link>
-          ) : (
-            <Link
-              to="/trips"
-              className="text-base text-mist/80 transition-colors hover:text-teal"
-            >
-              Add a memory →
-            </Link>
-          )}
+        <div className="mt-24">
+          <div className="text-[11px] tracking-[0.32em] text-gold">QUICK ACTIONS</div>
+          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-10 sm:gap-y-3">
+            <QuickAction to="/map" label="Open your map" />
+            <QuickAction to="/trips" label="Plan a new trip" />
+            <QuickAction
+              to={latestTrip ? `/trips/${latestTrip.id}/memories` : '/trips'}
+              label="Add a memory"
+            />
+          </div>
         </div>
       </section>
     </main>
@@ -330,6 +312,30 @@ function LatestTripCard({ trip, counts, onOpen }) {
         Open this trip →
       </div>
     </button>
+  )
+}
+
+function QuickAction({ to, label }) {
+  return (
+    <Link
+      to={to}
+      className="group inline-flex items-center gap-3 text-base text-mist/80 transition-colors hover:text-gold"
+    >
+      <svg
+        aria-hidden
+        viewBox="0 0 24 24"
+        className="h-4 w-4 text-teal-soft transition-transform group-hover:translate-x-0.5 group-hover:text-gold"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="4" y1="12" x2="19" y2="12" />
+        <polyline points="13 6 19 12 13 18" />
+      </svg>
+      <span>{label}</span>
+    </Link>
   )
 }
 
