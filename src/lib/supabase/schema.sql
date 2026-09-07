@@ -21,13 +21,16 @@ create table if not exists public.profiles (
 -- trips (exactly two travellers per trip)
 -- -----------------------------------------------------------------------------
 create table if not exists public.trips (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  user1_id    uuid not null references auth.users(id) on delete cascade,
-  user2_id    uuid          references auth.users(id) on delete set null,
-  created_at  timestamptz not null default now(),
+  id             uuid primary key default gen_random_uuid(),
+  name           text not null,
+  user1_id       uuid not null references auth.users(id) on delete cascade,
+  user2_id       uuid          references auth.users(id) on delete set null,
+  invited_email  text,
+  created_at     timestamptz not null default now(),
   constraint trips_distinct_members check (user1_id <> user2_id)
 );
+
+alter table public.trips add column if not exists invited_email text;
 
 create index if not exists trips_user1_idx on public.trips(user1_id);
 create index if not exists trips_user2_idx on public.trips(user2_id);

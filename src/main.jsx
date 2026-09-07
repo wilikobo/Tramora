@@ -7,6 +7,7 @@ import Register from './pages/Register.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Profile from './pages/Profile.jsx'
 import MapPage from './pages/Map.jsx'
+import Trips from './pages/Trips.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import './styles/index.css'
@@ -37,6 +38,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           />
           <Route
             path="/map"
+            element={
+              <ProtectedRoute>
+                <MapPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips"
+            element={
+              <ProtectedRoute>
+                <Trips />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips/:tripId"
             element={
               <ProtectedRoute>
                 <MapPage />

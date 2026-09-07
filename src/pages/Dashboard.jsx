@@ -39,7 +39,7 @@ export default function Dashboard() {
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
           <span className="font-display text-xl text-white">Wayra</span>
         </Link>
@@ -49,6 +49,9 @@ export default function Dashboard() {
           </NavLink>
           <NavLink to="/map" className={navClass}>
             Map
+          </NavLink>
+          <NavLink to="/trips" className={navClass}>
+            Trips
           </NavLink>
           <button
             type="button"
@@ -95,7 +98,14 @@ export default function Dashboard() {
         </p>
 
         <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-          <PlaceholderCard label="Trips" hint="Start a new journey" />
+          <Link
+            to="/trips"
+            className="group rounded-2xl border border-gold/30 bg-gold/5 p-6 text-left shadow-soft backdrop-blur-sm transition-colors hover:border-gold/60 hover:bg-gold/10"
+          >
+            <div className="text-[11px] tracking-[0.32em] text-gold">TRIPS</div>
+            <div className="mt-3 font-display text-2xl text-white">Plan together</div>
+            <div className="mt-1 text-sm text-mist/70">Invite a partner</div>
+          </Link>
           <Link
             to="/map"
             className="group rounded-2xl border border-teal/30 bg-teal/5 p-6 text-left shadow-soft backdrop-blur-sm transition-colors hover:border-teal/60 hover:bg-teal/10"

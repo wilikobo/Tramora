@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { useAuth } from '../contexts/AuthContext.jsx'
@@ -34,8 +34,10 @@ function nameOf(geo) {
 export default function Map() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const { tripId: tripIdParam } = useParams()
 
   const [tripId, setTripId] = useState(null)
+  const [tripName, setTripName] = useState(null)
   const [tripLoading, setTripLoading] = useState(true)
   const [tripError, setTripError] = useState(null)
 
@@ -51,10 +53,25 @@ export default function Map() {
     let cancelled = false
     setTripLoading(true)
     setTripError(null)
-    getOrCreatePersonalTrip(user.id)
+
+    const resolveTrip = async () => {
+      if (tripIdParam) {
+        const { data, error } = await supabase
+          .from('trips')
+          .select('id, name')
+          .eq('id', tripIdParam)
+          .single()
+        if (error) throw error
+        return data
+      }
+      return getOrCreatePersonalTrip(user.id)
+    }
+
+    resolveTrip()
       .then(async (trip) => {
         if (cancelled) return
         setTripId(trip.id)
+        setTripName(trip.name)
         const { data, error } = await supabase
           .from('countries')
           .select('id, country_code, country_name, status, notes')
@@ -76,7 +93,7 @@ export default function Map() {
     return () => {
       cancelled = true
     }
-  }, [user?.id])
+  }, [user?.id, tripIdParam])
 
   const handleSignOut = async () => {
     setSigningOut(true)
@@ -136,7 +153,7 @@ export default function Map() {
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30">
         <div className="pointer-events-auto mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/dashboard" className="flex items-center gap-3">
             <img src="/logo.png" width="40" height="40" alt="Wayra" className="rounded-full" />
             <span className="font-display text-lg text-white">Wayra</span>
           </Link>
@@ -146,6 +163,9 @@ export default function Map() {
             </NavLink>
             <NavLink to="/map" className={navClass} end>
               Map
+            </NavLink>
+            <NavLink to="/trips" className={navClass}>
+              Trips
             </NavLink>
             <span className="hidden text-sm text-mist/60 sm:inline">{displayName}</span>
             <button
@@ -414,6 +434,8 @@ function CountrySidebar({ country, existing, onClose, onSave }) {
             {error}
           </p>
         ) : null}
+
+        <ActivitiesSection countryId={existing?.id ?? null} />
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-navy-line px-6 py-5">
@@ -434,6 +456,240 @@ function CountrySidebar({ country, existing, onClose, onSave }) {
         </button>
       </div>
     </motion.aside>
+  )
+}
+
+const CATEGORIES = [
+  { value: 'adventure', label: 'Adventure' },
+  { value: 'culture', label: 'Culture' },
+  { value: 'food', label: 'Food' },
+  { value: 'relax', label: 'Relax' },
+]
+
+const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((c) => [c.value, c.label]))
+
+function ActivitiesSection({ countryId }) {
+  const [activities, setActivities] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [listError, setListError] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState('adventure')
+  const [date, setDate] = useState('')
+  const [budget, setBudget] = useState('')
+  const [priority, setPriority] = useState('nice')
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState(null)
+
+  useEffect(() => {
+    if (!countryId) {
+      setActivities([])
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setListError(null)
+    supabase
+      .from('activities')
+      .select('id, name, category, date_start, budget, priority')
+      .eq('country_id', countryId)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) setListError(error.message)
+        else setActivities(data ?? [])
+      })
+      .then(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [countryId])
+
+  function resetForm() {
+    setName('')
+    setCategory('adventure')
+    setDate('')
+    setBudget('')
+    setPriority('nice')
+    setFormError(null)
+  }
+
+  async function handleAdd(e) {
+    e.preventDefault()
+    if (!countryId) return
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setFormError('Give this activity a name.')
+      return
+    }
+    setSaving(true)
+    setFormError(null)
+    try {
+      const payload = {
+        country_id: countryId,
+        name: trimmed,
+        category,
+        date_start: date || null,
+        budget: budget ? Number(budget) : null,
+        priority,
+      }
+      const { data, error } = await supabase
+        .from('activities')
+        .insert(payload)
+        .select('id, name, category, date_start, budget, priority')
+        .single()
+      if (error) throw error
+      setActivities((prev) => [...prev, data])
+      resetForm()
+      setShowForm(false)
+    } catch (err) {
+      setFormError(err.message ?? 'Could not save activity.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(id) {
+    const snapshot = activities
+    setActivities((prev) => prev.filter((a) => a.id !== id))
+    const { error } = await supabase.from('activities').delete().eq('id', id)
+    if (error) {
+      setListError(error.message)
+      setActivities(snapshot)
+    }
+  }
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <label className="auth-label !mb-0">Activities</label>
+        {countryId ? (
+          <button
+            type="button"
+            onClick={() => setShowForm((v) => !v)}
+            className="text-xs text-teal-soft transition-colors hover:text-teal"
+          >
+            {showForm ? 'Cancel' : '+ Add'}
+          </button>
+        ) : null}
+      </div>
+
+      {!countryId ? (
+        <p className="rounded-lg border border-navy-line bg-navy-soft/40 px-3 py-2 text-xs text-mist/60">
+          Save this country first to add activities.
+        </p>
+      ) : (
+        <>
+          {loading ? (
+            <p className="text-xs text-muted">Loading…</p>
+          ) : activities.length === 0 && !showForm ? (
+            <p className="text-xs text-mist/60">No activities yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {activities.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-start justify-between gap-3 rounded-xl border border-navy-line bg-navy-soft/40 px-3 py-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm text-white">{a.name}</span>
+                      {a.priority === 'must' ? (
+                        <span className="rounded-full bg-gold/20 px-1.5 py-0.5 text-[9px] font-medium tracking-wider text-gold">
+                          MUST
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-mist/60">
+                      {a.category ? <span>{CATEGORY_LABELS[a.category] ?? a.category}</span> : null}
+                      {a.date_start ? <span>· {a.date_start}</span> : null}
+                      {a.budget != null ? <span>· €{Number(a.budget).toFixed(0)}</span> : null}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(a.id)}
+                    className="shrink-0 rounded-md border border-navy-line px-2 py-1 text-[11px] text-mist/60 transition-colors hover:border-red-400/40 hover:text-red-200"
+                    aria-label="Delete activity"
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {listError ? (
+            <p className="mt-2 text-xs text-red-200">{listError}</p>
+          ) : null}
+
+          {showForm ? (
+            <form
+              onSubmit={handleAdd}
+              className="mt-3 space-y-3 rounded-xl border border-navy-line bg-navy-soft/40 p-3"
+            >
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Activity name"
+                className="auth-input !py-2 text-sm"
+                required
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="auth-input !py-2 text-sm"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="auth-input !py-2 text-sm"
+                >
+                  <option value="must">Must</option>
+                  <option value="nice">Nice</option>
+                </select>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="auth-input !py-2 text-sm"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  placeholder="Budget (€)"
+                  className="auth-input !py-2 text-sm"
+                />
+              </div>
+              {formError ? (
+                <p className="text-xs text-red-200">{formError}</p>
+              ) : null}
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-primary w-full !py-2 text-sm"
+              >
+                {saving ? 'Saving…' : 'Add activity'}
+              </button>
+            </form>
+          ) : null}
+        </>
+      )}
+    </div>
   )
 }
 

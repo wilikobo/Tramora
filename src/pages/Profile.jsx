@@ -54,7 +54,7 @@ export default function Profile() {
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-3xl items-center justify-between px-6 py-8">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="40" height="40" alt="Wayra" className="rounded-full" />
           <span className="font-display text-lg text-white">Wayra</span>
         </Link>
