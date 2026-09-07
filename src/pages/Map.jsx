@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { getOrCreatePersonalTrip } from '../lib/personalTrip.js'
+import { flagEmoji } from '../lib/countryCodes.js'
 
-const GEO_URL =
-  'https://cdn.jsdelivr.net/gh/deldersveld/topojson@master/world-countries.json'
+const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 const STATUS_COLORS = {
   done: '#14B8A6',
@@ -20,6 +20,15 @@ const STATUS_LABELS = {
   done: 'Visited',
   planned: 'Planned',
   wishlist: 'Wishlist',
+}
+
+function codeOf(geo) {
+  // world-atlas stores numeric ISO 3166-1 as geo.id (e.g. 840 → US)
+  return String(geo.id ?? '').padStart(3, '0')
+}
+
+function nameOf(geo) {
+  return geo.properties?.name ?? 'Unknown'
 }
 
 export default function Map() {
@@ -118,7 +127,13 @@ export default function Map() {
   )
 
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-navy text-mist">
+    <main className="fixed inset-0 overflow-hidden bg-navy text-mist">
+      <WorldMap
+        countries={countries}
+        onHover={setTooltip}
+        onSelect={setSelected}
+      />
+
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30">
         <div className="pointer-events-auto mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <Link to="/" className="flex items-center gap-3">
@@ -147,18 +162,17 @@ export default function Map() {
 
       <Legend />
 
+      {tripLoading ? (
+        <div className="pointer-events-none absolute inset-x-0 top-24 z-30 mx-auto max-w-xs rounded-full border border-navy-line bg-navy-deep/70 px-4 py-2 text-center text-[11px] tracking-[0.32em] text-muted backdrop-blur">
+          LOADING YOUR PINS…
+        </div>
+      ) : null}
+
       {tripError ? (
         <div className="absolute inset-x-0 top-24 z-30 mx-auto max-w-md rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-center text-sm text-red-200">
           {tripError}
         </div>
       ) : null}
-
-      <WorldMap
-        countries={countries}
-        onHover={setTooltip}
-        onSelect={setSelected}
-        loading={tripLoading}
-      />
 
       <AnimatePresence>
         {tooltip ? (
@@ -223,7 +237,7 @@ function Legend() {
   )
 }
 
-function WorldMap({ countries, onHover, onSelect, loading }) {
+function WorldMap({ countries, onHover, onSelect }) {
   const fillFor = (code) => {
     const row = countries[code]
     if (!row) return DEFAULT_FILL
@@ -231,30 +245,25 @@ function WorldMap({ countries, onHover, onSelect, loading }) {
   }
 
   return (
-    <div className="absolute inset-0">
-      {loading ? (
-        <div className="absolute inset-0 z-10 flex items-center justify-center text-xs tracking-[0.32em] text-muted">
-          LOADING MAP…
-        </div>
-      ) : null}
+    <div className="absolute inset-0 z-0">
       <ComposableMap
         projection="geoEqualEarth"
-        projectionConfig={{ scale: 180 }}
-        style={{ width: '100%', height: '100%', background: '#0F172A' }}
+        projectionConfig={{ scale: 175 }}
+        width={980}
+        height={520}
+        style={{
+          width: '100%',
+          height: '100%',
+          background: '#0F172A',
+          display: 'block',
+        }}
       >
         <ZoomableGroup center={[10, 15]} zoom={1} minZoom={1} maxZoom={5}>
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const code =
-                  geo.properties.ISO_A2 && geo.properties.ISO_A2 !== '-99'
-                    ? geo.properties.ISO_A2
-                    : geo.properties.ISO_A3 || String(geo.id ?? '')
-                const name =
-                  geo.properties.ADMIN ||
-                  geo.properties.NAME ||
-                  geo.properties.name ||
-                  'Unknown'
+                const code = codeOf(geo)
+                const name = nameOf(geo)
                 const fill = fillFor(code)
                 return (
                   <Geography
@@ -304,7 +313,6 @@ function CountrySidebar({ country, existing, onClose, onSave }) {
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
-  const notesRef = useRef(null)
 
   useEffect(() => {
     setStatus(existing?.status ?? 'none')
@@ -393,7 +401,6 @@ function CountrySidebar({ country, existing, onClose, onSave }) {
           </label>
           <textarea
             id="notes"
-            ref={notesRef}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={5}
@@ -449,15 +456,4 @@ function StatusButton({ active, color, onClick, label }) {
       {label}
     </button>
   )
-}
-
-function flagEmoji(code) {
-  if (!code || code.length !== 2) return '🏳️'
-  const upper = code.toUpperCase()
-  const A = 0x1f1e6 - 65
-  try {
-    return String.fromCodePoint(upper.charCodeAt(0) + A, upper.charCodeAt(1) + A)
-  } catch {
-    return '🏳️'
-  }
 }
