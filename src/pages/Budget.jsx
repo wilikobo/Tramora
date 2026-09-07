@@ -5,6 +5,7 @@ import WorldContour from '../components/WorldContour.jsx'
 import TripTabs from '../components/TripTabs.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+import { DEMO_BUDGET, DEMO_TRIP_NAME } from '../lib/demoTrip.js'
 
 const CATEGORIES = [
   { key: 'flights',       label: 'Flights',       icon: '✈️', color: '#14B8A6' },
@@ -62,25 +63,42 @@ export default function Budget() {
         .eq('trip_id', tripId)
         .maybeSingle()
       if (budgetErr) throw budgetErr
+      console.debug('[Budget] loaded row for trip', tripId, budgetRow)
 
       const toNum = (v) => {
+        if (v === null || v === undefined || v === '') return 0
         const n = typeof v === 'string' ? parseFloat(v) : Number(v)
         return Number.isFinite(n) ? n : 0
       }
 
-      if (budgetRow) {
-        setBudget({
-          total_budget: toNum(budgetRow.total_budget),
-          flights: toNum(budgetRow.flights),
-          accommodation: toNum(budgetRow.accommodation),
-          food: toNum(budgetRow.food),
-          activities: toNum(budgetRow.activities),
-          transport: toNum(budgetRow.transport),
-          other: toNum(budgetRow.other),
-        })
-      } else {
-        setBudget(EMPTY)
+      let normalized = budgetRow
+        ? {
+            total_budget: toNum(budgetRow.total_budget),
+            flights: toNum(budgetRow.flights),
+            accommodation: toNum(budgetRow.accommodation),
+            food: toNum(budgetRow.food),
+            activities: toNum(budgetRow.activities),
+            transport: toNum(budgetRow.transport),
+            other: toNum(budgetRow.other),
+          }
+        : { ...EMPTY }
+
+      const allZero = Object.values(normalized).every((v) => v === 0)
+      const isDemoTrip = tripRow?.name === DEMO_TRIP_NAME
+
+      if (isDemoTrip && (!budgetRow || allZero)) {
+        const seedPayload = { trip_id: tripId, ...DEMO_BUDGET, updated_at: new Date().toISOString() }
+        const { error: seedErr } = await supabase
+          .from('trip_budget')
+          .upsert(seedPayload, { onConflict: 'trip_id' })
+        if (seedErr) {
+          console.warn('[Budget] demo seed failed:', seedErr)
+        } else {
+          normalized = { ...DEMO_BUDGET }
+        }
       }
+
+      setBudget(normalized)
     } catch (err) {
       console.error('[Budget] load failed:', err)
       setError(err.message ?? 'Could not load budget.')

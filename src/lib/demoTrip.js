@@ -2,6 +2,16 @@ import { supabase } from './supabase.js'
 
 export const DEMO_TRIP_NAME = '🇨🇭 Switzerland — A Dream Trip'
 
+export const DEMO_BUDGET = {
+  total_budget: 1200,
+  flights: 280,
+  accommodation: 420,
+  food: 180,
+  activities: 220,
+  transport: 100,
+  other: 0,
+}
+
 const DEMO_ACTIVITIES = [
   {
     name: 'Jungfraujoch — Top of Europe',
