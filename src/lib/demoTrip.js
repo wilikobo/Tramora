@@ -49,7 +49,21 @@ export async function seedDemoTrip(userId) {
     .eq('user1_id', userId)
     .eq('name', DEMO_TRIP_NAME)
     .maybeSingle()
-  if (existing) return existing
+  if (existing) {
+    await supabase.from('trip_budget').upsert(
+      {
+        trip_id: existing.id,
+        total_budget: 1200,
+        flights: 280,
+        accommodation: 420,
+        food: 180,
+        activities: 220,
+        transport: 100,
+      },
+      { onConflict: 'trip_id', ignoreDuplicates: true },
+    )
+    return existing
+  }
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')

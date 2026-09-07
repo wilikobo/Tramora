@@ -41,7 +41,10 @@ export default function Budget() {
   const displayName = profile?.username ?? user?.user_metadata?.username ?? 'traveller'
 
   const loadAll = useCallback(async () => {
-    if (!tripId) return
+    if (!tripId) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -59,20 +62,27 @@ export default function Budget() {
         .eq('trip_id', tripId)
         .maybeSingle()
       if (budgetErr) throw budgetErr
+
+      const toNum = (v) => {
+        const n = typeof v === 'string' ? parseFloat(v) : Number(v)
+        return Number.isFinite(n) ? n : 0
+      }
+
       if (budgetRow) {
         setBudget({
-          total_budget: Number(budgetRow.total_budget) || 0,
-          flights: Number(budgetRow.flights) || 0,
-          accommodation: Number(budgetRow.accommodation) || 0,
-          food: Number(budgetRow.food) || 0,
-          activities: Number(budgetRow.activities) || 0,
-          transport: Number(budgetRow.transport) || 0,
-          other: Number(budgetRow.other) || 0,
+          total_budget: toNum(budgetRow.total_budget),
+          flights: toNum(budgetRow.flights),
+          accommodation: toNum(budgetRow.accommodation),
+          food: toNum(budgetRow.food),
+          activities: toNum(budgetRow.activities),
+          transport: toNum(budgetRow.transport),
+          other: toNum(budgetRow.other),
         })
       } else {
         setBudget(EMPTY)
       }
     } catch (err) {
+      console.error('[Budget] load failed:', err)
       setError(err.message ?? 'Could not load budget.')
     } finally {
       setLoading(false)
