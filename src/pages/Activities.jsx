@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import WorldContour from '../components/WorldContour.jsx'
+import TripTabs from '../components/TripTabs.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { flagEmoji } from '../lib/countryCodes.js'
@@ -254,12 +255,6 @@ export default function Activities() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              to={`/trips/${tripId}`}
-              className="btn-ghost !px-4 !py-2 text-sm"
-            >
-              ← Trip map
-            </Link>
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
@@ -268,6 +263,10 @@ export default function Activities() {
               + Add activity
             </button>
           </div>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <TripTabs tripId={tripId} />
         </div>
 
         <FilterBar

@@ -299,3 +299,178 @@ create policy "users delete own vote"
   on public.votes for delete
   to authenticated
   using (user_id = auth.uid());
+
+-- -----------------------------------------------------------------------------
+-- memories (per country: photos + notes tied to a visited country)
+-- -----------------------------------------------------------------------------
+create table if not exists public.memories (
+  id          uuid primary key default gen_random_uuid(),
+  country_id  uuid not null references public.countries(id) on delete cascade,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  photo_url   text,
+  note        text,
+  visit_date  date,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists memories_country_idx on public.memories(country_id);
+create index if not exists memories_user_idx    on public.memories(user_id);
+
+alter table public.memories enable row level security;
+
+drop policy if exists "members read memories" on public.memories;
+create policy "members read memories"
+  on public.memories for select
+  to authenticated
+  using (
+    exists (
+      select 1 from public.countries c
+      where c.id = memories.country_id
+        and public.is_trip_member(c.trip_id)
+    )
+  );
+
+drop policy if exists "members insert memories" on public.memories;
+create policy "members insert memories"
+  on public.memories for insert
+  to authenticated
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.countries c
+      where c.id = memories.country_id
+        and public.is_trip_member(c.trip_id)
+    )
+  );
+
+drop policy if exists "members update own memory" on public.memories;
+create policy "members update own memory"
+  on public.memories for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+drop policy if exists "members delete own memory" on public.memories;
+create policy "members delete own memory"
+  on public.memories for delete
+  to authenticated
+  using (user_id = auth.uid());
+
+-- -----------------------------------------------------------------------------
+-- trip_links (custom curated resources per trip)
+-- -----------------------------------------------------------------------------
+create table if not exists public.trip_links (
+  id         uuid primary key default gen_random_uuid(),
+  trip_id    uuid not null references public.trips(id) on delete cascade,
+  title      text not null,
+  url        text not null,
+  category   text not null default 'other',
+  added_by   uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists trip_links_trip_idx on public.trip_links(trip_id);
+
+alter table public.trip_links enable row level security;
+
+drop policy if exists "members read trip_links" on public.trip_links;
+create policy "members read trip_links"
+  on public.trip_links for select
+  to authenticated
+  using (public.is_trip_member(trip_id));
+
+drop policy if exists "members insert trip_links" on public.trip_links;
+create policy "members insert trip_links"
+  on public.trip_links for insert
+  to authenticated
+  with check (public.is_trip_member(trip_id));
+
+drop policy if exists "members update trip_links" on public.trip_links;
+create policy "members update trip_links"
+  on public.trip_links for update
+  to authenticated
+  using (public.is_trip_member(trip_id))
+  with check (public.is_trip_member(trip_id));
+
+drop policy if exists "members delete trip_links" on public.trip_links;
+create policy "members delete trip_links"
+  on public.trip_links for delete
+  to authenticated
+  using (public.is_trip_member(trip_id));
+
+-- -----------------------------------------------------------------------------
+-- trip_budget (one row per trip)
+-- -----------------------------------------------------------------------------
+create table if not exists public.trip_budget (
+  id             uuid primary key default gen_random_uuid(),
+  trip_id        uuid not null unique references public.trips(id) on delete cascade,
+  total_budget   numeric(12, 2) not null default 0,
+  flights        numeric(12, 2) not null default 0,
+  accommodation  numeric(12, 2) not null default 0,
+  food           numeric(12, 2) not null default 0,
+  activities     numeric(12, 2) not null default 0,
+  transport      numeric(12, 2) not null default 0,
+  other          numeric(12, 2) not null default 0,
+  updated_at     timestamptz not null default now()
+);
+
+alter table public.trip_budget enable row level security;
+
+drop policy if exists "members read trip_budget" on public.trip_budget;
+create policy "members read trip_budget"
+  on public.trip_budget for select
+  to authenticated
+  using (public.is_trip_member(trip_id));
+
+drop policy if exists "members insert trip_budget" on public.trip_budget;
+create policy "members insert trip_budget"
+  on public.trip_budget for insert
+  to authenticated
+  with check (public.is_trip_member(trip_id));
+
+drop policy if exists "members update trip_budget" on public.trip_budget;
+create policy "members update trip_budget"
+  on public.trip_budget for update
+  to authenticated
+  using (public.is_trip_member(trip_id))
+  with check (public.is_trip_member(trip_id));
+
+drop policy if exists "members delete trip_budget" on public.trip_budget;
+create policy "members delete trip_budget"
+  on public.trip_budget for delete
+  to authenticated
+  using (public.is_trip_member(trip_id));
+
+-- =============================================================================
+-- Storage: wayra-memories bucket
+-- Create the bucket in the Supabase dashboard (public read, authenticated write).
+-- Object path convention: {country_id}/{user_id}/{filename}
+-- =============================================================================
+insert into storage.buckets (id, name, public)
+values ('wayra-memories', 'wayra-memories', true)
+on conflict (id) do nothing;
+
+drop policy if exists "public read wayra-memories" on storage.objects;
+create policy "public read wayra-memories"
+  on storage.objects for select
+  to public
+  using (bucket_id = 'wayra-memories');
+
+drop policy if exists "auth upload wayra-memories" on storage.objects;
+create policy "auth upload wayra-memories"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'wayra-memories' and owner = auth.uid());
+
+drop policy if exists "auth update own wayra-memories" on storage.objects;
+create policy "auth update own wayra-memories"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id = 'wayra-memories' and owner = auth.uid())
+  with check (bucket_id = 'wayra-memories' and owner = auth.uid());
+
+drop policy if exists "auth delete own wayra-memories" on storage.objects;
+create policy "auth delete own wayra-memories"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'wayra-memories' and owner = auth.uid());

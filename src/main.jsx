@@ -9,6 +9,9 @@ import Profile from './pages/Profile.jsx'
 import MapPage from './pages/Map.jsx'
 import Trips from './pages/Trips.jsx'
 import Activities from './pages/Activities.jsx'
+import Budget from './pages/Budget.jsx'
+import Resources from './pages/Resources.jsx'
+import Memories from './pages/Memories.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import './styles/index.css'
@@ -66,6 +69,30 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             element={
               <ProtectedRoute>
                 <Activities />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips/:tripId/budget"
+            element={
+              <ProtectedRoute>
+                <Budget />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips/:tripId/resources"
+            element={
+              <ProtectedRoute>
+                <Resources />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips/:tripId/memories"
+            element={
+              <ProtectedRoute>
+                <Memories />
               </ProtectedRoute>
             }
           />

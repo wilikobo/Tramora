@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { getOrCreatePersonalTrip } from '../lib/personalTrip.js'
 import { flagEmoji } from '../lib/countryCodes.js'
+import TripTabs from '../components/TripTabs.jsx'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -254,18 +255,18 @@ export default function Map() {
               >
                 + Add country
               </button>
-              {isSharedTrip ? (
-                <Link
-                  to={`/trips/${tripId}/activities`}
-                  className="rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[11px] tracking-wide text-gold transition-colors hover:border-gold/70 hover:bg-gold/15 hover:text-white"
-                >
-                  Activities →
-                </Link>
-              ) : null}
             </>
           ) : null}
         </div>
       </div>
+
+      {isSharedTrip && tripId ? (
+        <div className="pointer-events-none absolute inset-x-0 top-32 z-30 flex justify-center px-4">
+          <div className="pointer-events-auto">
+            <TripTabs tripId={tripId} />
+          </div>
+        </div>
+      ) : null}
 
       <Legend />
 
@@ -536,7 +537,10 @@ function CountrySidebar({ country, existing, onClose, onSave }) {
           </p>
         ) : null}
 
-        <ActivitiesSection countryId={existing?.id ?? null} />
+        <SidebarTabs
+          countryId={existing?.id ?? null}
+          status={status}
+        />
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-navy-line px-6 py-5">
@@ -568,6 +572,251 @@ const CATEGORIES = [
 ]
 
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((c) => [c.value, c.label]))
+
+function SidebarTabs({ countryId, status }) {
+  const [tab, setTab] = useState('activities')
+  const memoriesUnlocked = status === 'done'
+
+  return (
+    <div>
+      <div className="mb-3 flex gap-1 rounded-full border border-navy-line bg-navy-deep/60 p-1">
+        <button
+          type="button"
+          onClick={() => setTab('activities')}
+          className={[
+            'flex-1 rounded-full px-3 py-1.5 text-xs tracking-wide transition-colors',
+            tab === 'activities'
+              ? 'bg-teal/20 text-white'
+              : 'text-mist/70 hover:text-white',
+          ].join(' ')}
+        >
+          Activities
+        </button>
+        <button
+          type="button"
+          onClick={() => memoriesUnlocked && setTab('memories')}
+          disabled={!memoriesUnlocked}
+          className={[
+            'flex-1 rounded-full px-3 py-1.5 text-xs tracking-wide transition-colors',
+            tab === 'memories'
+              ? 'bg-gold/20 text-white'
+              : memoriesUnlocked
+                ? 'text-mist/70 hover:text-white'
+                : 'cursor-not-allowed text-mist/30',
+          ].join(' ')}
+          title={memoriesUnlocked ? '' : 'Mark this country as Visited to add memories'}
+        >
+          Memories
+        </button>
+      </div>
+
+      {tab === 'activities' ? (
+        <ActivitiesSection countryId={countryId} />
+      ) : (
+        <MemoriesSection countryId={countryId} />
+      )}
+    </div>
+  )
+}
+
+function MemoriesSection({ countryId }) {
+  const { user } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [note, setNote] = useState('')
+  const [visitDate, setVisitDate] = useState('')
+  const [file, setFile] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!countryId) {
+      setItems([])
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    supabase
+      .from('memories')
+      .select('id, user_id, photo_url, note, visit_date, created_at')
+      .eq('country_id', countryId)
+      .order('visit_date', { ascending: false, nullsFirst: false })
+      .then(({ data, error: err }) => {
+        if (cancelled) return
+        if (err) setError(err.message)
+        else setItems(data ?? [])
+      })
+      .then(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [countryId])
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!countryId || !user?.id) return
+    if (!file && !note.trim()) {
+      setError('Add a photo or a note.')
+      return
+    }
+    setSaving(true)
+    setError(null)
+    try {
+      let photoUrl = null
+      if (file) {
+        const ext = file.name.split('.').pop() || 'jpg'
+        const path = `${countryId}/${user.id}/${Date.now()}.${ext}`
+        const { error: upErr } = await supabase
+          .storage
+          .from('wayra-memories')
+          .upload(path, file, { cacheControl: '3600', upsert: false })
+        if (upErr) throw upErr
+        const { data: pub } = supabase.storage.from('wayra-memories').getPublicUrl(path)
+        photoUrl = pub?.publicUrl ?? null
+      }
+      const payload = {
+        country_id: countryId,
+        user_id: user.id,
+        photo_url: photoUrl,
+        note: note.trim() || null,
+        visit_date: visitDate || null,
+      }
+      const { data, error: insErr } = await supabase
+        .from('memories')
+        .insert(payload)
+        .select('id, user_id, photo_url, note, visit_date, created_at')
+        .single()
+      if (insErr) throw insErr
+      setItems((prev) => [data, ...prev])
+      setNote('')
+      setVisitDate('')
+      setFile(null)
+    } catch (err) {
+      setError(err.message ?? 'Could not save memory.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(id) {
+    const snapshot = items
+    setItems((prev) => prev.filter((m) => m.id !== id))
+    const { error: delErr } = await supabase.from('memories').delete().eq('id', id)
+    if (delErr) {
+      setError(delErr.message)
+      setItems(snapshot)
+    }
+  }
+
+  if (!countryId) {
+    return (
+      <p className="rounded-lg border border-navy-line bg-navy-soft/40 px-3 py-2 text-xs text-mist/60">
+        Save this country first to add memories.
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-3 rounded-xl border border-navy-line bg-navy-soft/40 p-3"
+      >
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="block w-full text-xs text-mist/70 file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-teal/20 file:px-3 file:py-1.5 file:text-xs file:text-teal-soft hover:file:bg-teal/30"
+        />
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+          className="auth-input !py-2 text-sm resize-none"
+          placeholder="A moment worth keeping…"
+        />
+        <input
+          type="date"
+          value={visitDate}
+          onChange={(e) => setVisitDate(e.target.value)}
+          className="auth-input !py-2 text-sm"
+        />
+        {error ? (
+          <p className="text-xs text-red-200">{error}</p>
+        ) : null}
+        <button
+          type="submit"
+          disabled={saving}
+          className="btn-primary w-full !py-2 text-sm"
+        >
+          {saving ? 'Saving…' : 'Add memory'}
+        </button>
+      </form>
+
+      {loading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : items.length === 0 ? (
+        <p className="text-xs text-mist/60">No memories yet.</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            {items
+              .filter((m) => m.photo_url)
+              .map((m) => (
+                <a
+                  key={m.id}
+                  href={m.photo_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative aspect-square overflow-hidden rounded-lg border border-navy-line"
+                >
+                  <img
+                    src={m.photo_url}
+                    alt={m.note ?? 'memory'}
+                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                  />
+                </a>
+              ))}
+          </div>
+          <ul className="space-y-2">
+            {items.map((m) => (
+              <li
+                key={m.id}
+                className="flex items-start justify-between gap-3 rounded-xl border border-navy-line bg-navy-soft/40 px-3 py-2"
+              >
+                <div className="min-w-0 flex-1">
+                  {m.visit_date ? (
+                    <div className="text-[10px] tracking-widest text-gold">
+                      {m.visit_date}
+                    </div>
+                  ) : null}
+                  {m.note ? (
+                    <p className="mt-0.5 text-sm text-mist whitespace-pre-wrap break-words">{m.note}</p>
+                  ) : (
+                    <p className="mt-0.5 text-xs text-mist/50">Photo memory</p>
+                  )}
+                </div>
+                {m.user_id === user?.id ? (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(m.id)}
+                    className="shrink-0 rounded-md border border-navy-line px-2 py-1 text-[11px] text-mist/60 transition-colors hover:border-red-400/40 hover:text-red-200"
+                    aria-label="Delete memory"
+                  >
+                    ✕
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  )
+}
 
 function ActivitiesSection({ countryId }) {
   const [activities, setActivities] = useState([])
