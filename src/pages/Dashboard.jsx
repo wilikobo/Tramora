@@ -168,14 +168,14 @@ export default function Dashboard() {
           <StatCard
             value={stats.visited}
             label="Countries visited"
-            tone="forest"
+            tone="sky"
             loading={statsLoading}
             icon={<PinIcon />}
           />
           <StatCard
             value={stats.trips}
             label="Trips created"
-            tone="sky"
+            tone="forest"
             loading={statsLoading}
             icon={<SuitcaseIcon />}
           />
