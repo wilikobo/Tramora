@@ -76,9 +76,9 @@ export default function Trips() {
   }
 
   return (
-    <main className="relative min-h-screen bg-cloud">
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <WorldContour className="h-full w-full" opacity={0.045} />
+    <main className="relative min-h-screen bg-white">
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <WorldContour className="h-full w-full" color="#2563EB" opacity={0.03} />
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
@@ -145,12 +145,13 @@ export default function Trips() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {trips.map((trip) => {
+              {trips.map((trip, i) => {
                 const partnerId = trip.user1_id === user?.id ? trip.user2_id : trip.user1_id
                 return (
                   <TripCard
                     key={trip.id}
                     trip={trip}
+                    index={i}
                     isOwner={trip.user1_id === user?.id}
                     partnerName={partnerId ? partnerNames[partnerId] : null}
                     onOpen={() => navigate(`/trips/${trip.id}`)}
@@ -216,13 +217,26 @@ function navClass({ isActive }) {
   ].join(' ')
 }
 
-function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
+const TRIP_ACCENTS = [
+  { border: '#2563EB', label: 'text-sky', hoverBg: 'hover:bg-[#EFF6FF]' },
+  { border: '#10B981', label: 'text-forest', hoverBg: 'hover:bg-[#F0FDF4]' },
+  { border: '#F59E0B', label: 'text-[#B45309]', hoverBg: 'hover:bg-[#FFFBEB]' },
+]
+
+function TripCard({ trip, index = 0, isOwner, partnerName, onOpen, onDelete, onInvite }) {
   const hasPartner = Boolean(trip.user2_id)
   const isPending = !hasPartner && Boolean(trip.invited_email)
   const isDemo = trip.name === DEMO_TRIP_NAME
+  const accent = TRIP_ACCENTS[index % TRIP_ACCENTS.length]
 
   return (
-    <div className="group relative flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-soft backdrop-blur-sm transition-colors hover:border-gold/50 hover:bg-gold/5">
+    <div
+      className={[
+        'group relative flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md',
+        accent.hoverBg,
+      ].join(' ')}
+      style={{ borderLeft: `4px solid ${accent.border}` }}
+    >
       <button
         type="button"
         onClick={onDelete}
@@ -236,7 +250,7 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
         onClick={onOpen}
         className="flex h-full flex-col rounded-2xl p-6 pb-4 text-left"
       >
-        <div className="flex items-center gap-2 text-[11px] tracking-[0.32em] text-gold">
+        <div className={['flex items-center gap-2 text-[11px] font-semibold tracking-[0.32em]', accent.label].join(' ')}>
           <span>{isOwner ? 'YOU HOST · SHARED' : 'SHARED'}</span>
           {isDemo ? (
             <span
@@ -265,7 +279,7 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
             'Invite a partner to plan together'
           )}
         </div>
-        <div className="mt-6 text-xs text-mist/50 transition-colors group-hover:text-gold">
+        <div className={['mt-6 text-xs font-medium text-ink-muted transition-colors', `group-hover:${accent.label.replace('text-', 'text-')}`].join(' ')}>
           Open trip map →
         </div>
       </button>

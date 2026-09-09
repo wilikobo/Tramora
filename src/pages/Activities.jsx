@@ -207,9 +207,9 @@ export default function Activities() {
   }
 
   return (
-    <main className="relative min-h-screen bg-cloud">
+    <main className="relative min-h-screen bg-white">
       <div className="pointer-events-none absolute inset-0 z-0">
-        <WorldContour className="h-full w-full" opacity={0.04} />
+        <WorldContour className="h-full w-full" color="#2563EB" opacity={0.03} />
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
