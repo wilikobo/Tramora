@@ -247,7 +247,7 @@ export default function Budget() {
           <p className="mt-10 text-sm text-mist/60">Loading budget…</p>
         ) : (
           <>
-            <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="mt-10 rounded-2xl border border-[#BFDBFE] bg-[#EFF6FF] p-6 shadow-sm">
               <label htmlFor="total-budget" className="auth-label">Total trip budget</label>
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-display text-ink">€</span>
@@ -278,7 +278,7 @@ export default function Budget() {
             </div>
 
             <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] p-6 shadow-sm">
                 <div className="mb-4 text-[11px] tracking-[0.32em] text-muted">
                   DISTRIBUTION
                 </div>
@@ -320,7 +320,7 @@ export default function Budget() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="rounded-2xl border border-[#BFDBFE] bg-[#EFF6FF] p-6 shadow-sm">
                 <div className="mb-4 text-[11px] tracking-[0.32em] text-muted">
                   CATEGORIES
                 </div>
@@ -362,12 +362,13 @@ export default function Budget() {
                   </tr>
                 </thead>
                 <tbody>
-                  {CATEGORIES.map((c) => {
+                  {CATEGORIES.map((c, i) => {
                     const val = Number(budget[c.key]) || 0
                     const pctTotal = totalBudget > 0 ? (val / totalBudget) * 100 : 0
                     const pctAlloc = sumCategories > 0 ? (val / sumCategories) * 100 : 0
+                    const rowBg = i % 2 === 1 ? 'bg-[#F0FDF4]' : 'bg-white'
                     return (
-                      <tr key={c.key} className="border-b border-slate-200/60 last:border-b-0">
+                      <tr key={c.key} className={['border-b border-slate-200/60 last:border-b-0', rowBg].join(' ')}>
                         <td className="px-5 py-3">
                           <span className="inline-flex items-center gap-2 text-mist">
                             <span
@@ -390,7 +391,7 @@ export default function Budget() {
                       </tr>
                     )
                   })}
-                  <tr className="bg-white font-medium">
+                  <tr className={[CATEGORIES.length % 2 === 1 ? 'bg-[#F0FDF4]' : 'bg-white', 'font-medium'].join(' ')}>
                     <td className="px-5 py-3 text-mist/80">Total allocated</td>
                     <td className="px-5 py-3 text-right tabular-nums text-ink">
                       €{sumCategories.toFixed(0)}
@@ -400,7 +401,7 @@ export default function Budget() {
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-mist/70">100.0%</td>
                   </tr>
-                  <tr>
+                  <tr className={CATEGORIES.length % 2 === 0 ? 'bg-[#F0FDF4]' : 'bg-white'}>
                     <td className="px-5 py-3 text-mist/80">Remaining</td>
                     <td
                       className={[

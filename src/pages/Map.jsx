@@ -10,12 +10,13 @@ import TripTabs from '../components/TripTabs.jsx'
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 const STATUS_COLORS = {
-  done: '#14B8A6',
+  done: '#0D9488',
   planned: '#F59E0B',
   wishlist: '#6366F1',
 }
-const DEFAULT_FILL = '#1E293B'
-const STROKE = '#0B1220'
+const DEFAULT_FILL = '#CBD5E1'
+const STROKE = '#94A3B8'
+const OCEAN_BG = '#F0F9FF'
 const STATUS_LABELS = {
   done: 'Visited',
   planned: 'Planned',
@@ -66,6 +67,11 @@ export default function Map() {
   const [tooltip, setTooltip] = useState(null)
   const [signingOut, setSigningOut] = useState(false)
   const [showAddCountry, setShowAddCountry] = useState(false)
+  const [mapPosition, setMapPosition] = useState({ coordinates: [10, 15], zoom: 1 })
+
+  const zoomIn = () => setMapPosition((p) => ({ ...p, zoom: Math.min(p.zoom * 1.5, 5) }))
+  const zoomOut = () => setMapPosition((p) => ({ ...p, zoom: Math.max(p.zoom / 1.5, 1) }))
+  const zoomReset = () => setMapPosition({ coordinates: [10, 15], zoom: 1 })
 
   const displayName = profile?.username ?? user?.user_metadata?.username ?? 'traveller'
 
@@ -209,7 +215,11 @@ export default function Map() {
         countries={countries}
         onHover={setTooltip}
         onSelect={setSelected}
+        position={mapPosition}
+        onMoveEnd={setMapPosition}
       />
+
+      <ZoomControls onZoomIn={zoomIn} onZoomOut={zoomOut} onReset={zoomReset} />
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30">
         <div className="pointer-events-auto mx-auto flex max-w-7xl items-center justify-between rounded-b-2xl bg-white/85 px-6 py-4 shadow-card backdrop-blur">
@@ -376,7 +386,7 @@ function Legend() {
   )
 }
 
-function WorldMap({ countries, onHover, onSelect }) {
+function WorldMap({ countries, onHover, onSelect, position, onMoveEnd }) {
   const fillFor = (code) => {
     const row = countries[code]
     if (!row) return DEFAULT_FILL
@@ -393,11 +403,17 @@ function WorldMap({ countries, onHover, onSelect }) {
         style={{
           width: '100%',
           height: '100%',
-          background: '#0F172A',
+          background: OCEAN_BG,
           display: 'block',
         }}
       >
-        <ZoomableGroup center={[10, 15]} zoom={1} minZoom={1} maxZoom={5}>
+        <ZoomableGroup
+          center={position.coordinates}
+          zoom={position.zoom}
+          minZoom={1}
+          maxZoom={5}
+          onMoveEnd={onMoveEnd}
+        >
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
               geographies.map((geo) => {
@@ -425,8 +441,8 @@ function WorldMap({ countries, onHover, onSelect }) {
                         transition: 'fill 200ms ease',
                       },
                       hover: {
-                        fill: fill === DEFAULT_FILL ? '#334155' : fill,
-                        stroke: '#2DD4BF',
+                        fill: fill === DEFAULT_FILL ? '#94A3B8' : fill,
+                        stroke: '#0D9488',
                         strokeWidth: 0.75,
                         outline: 'none',
                         cursor: 'pointer',
@@ -443,6 +459,32 @@ function WorldMap({ countries, onHover, onSelect }) {
           </Geographies>
         </ZoomableGroup>
       </ComposableMap>
+    </div>
+  )
+}
+
+function ZoomControls({ onZoomIn, onZoomOut, onReset }) {
+  const btn =
+    'flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-ink shadow-md transition hover:border-sky/60 hover:text-sky'
+  return (
+    <div className="pointer-events-auto absolute right-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-2">
+      <button type="button" onClick={onZoomIn} className={btn} aria-label="Zoom in">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+      <button type="button" onClick={onZoomOut} className={btn} aria-label="Zoom out">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+      <button type="button" onClick={onReset} className={btn} aria-label="Reset view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 11l9-8 9 8" />
+          <path d="M5 10v10h14V10" />
+        </svg>
+      </button>
     </div>
   )
 }
@@ -483,7 +525,7 @@ function CountrySidebar({ country, existing, onClose, onSave }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 32 }}
-      className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-sm flex-col border-l border-sky/20 bg-white/95 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)] backdrop-blur-xl"
+      className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-[380px] flex-col border-l border-slate-200 bg-white shadow-[-8px_0_24px_-8px_rgba(15,23,42,0.15)]"
     >
       <div className="flex items-start justify-between border-b border-slate-200 px-6 py-6">
         <div>
