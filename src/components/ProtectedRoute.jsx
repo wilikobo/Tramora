@@ -7,7 +7,7 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-navy text-muted">
+      <div className="flex min-h-screen items-center justify-center bg-cloud text-ink-muted">
         <span className="text-sm tracking-[0.32em]">LOADING…</span>
       </div>
     )

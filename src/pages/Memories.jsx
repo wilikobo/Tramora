@@ -95,7 +95,7 @@ export default function Memories() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
+    <main className="relative min-h-screen bg-cloud">
       <div className="pointer-events-none absolute inset-0 z-0">
         <WorldContour className="h-full w-full" opacity={0.04} />
       </div>
@@ -103,7 +103,7 @@ export default function Memories() {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
         <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-xl text-white">Wayra</span>
+          <span className="font-display text-xl text-ink">Wayra</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-6">
           <NavLink to="/dashboard" className={navClass} end>Home</NavLink>
@@ -149,7 +149,7 @@ export default function Memories() {
         </div>
 
         {error ? (
-          <p className="mt-6 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
@@ -158,10 +158,10 @@ export default function Memories() {
           {loading ? (
             <p className="text-sm text-mist/60">Loading memories…</p>
           ) : grouped.length === 0 ? (
-            <div className="rounded-2xl border border-navy-line bg-navy-soft/40 px-6 py-12 text-center">
+            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center">
               <p className="text-mist/80">No memories yet.</p>
               <p className="mt-1 text-sm text-mist/50">
-                Mark a country as <span className="text-teal-soft">Visited</span> on the map, then add photos and notes in its side panel.
+                Mark a country as <span className="text-sky">Visited</span> on the map, then add photos and notes in its side panel.
               </p>
               <div className="mt-6">
                 <Link to={`/trips/${tripId}`} className="btn-ghost !px-4 !py-2 text-sm">
@@ -175,7 +175,7 @@ export default function Memories() {
                 <div key={country.id}>
                   <div className="mb-4 flex items-center gap-3">
                     <span className="text-2xl leading-none">{flagEmoji(country.country_code)}</span>
-                    <h2 className="font-display text-xl text-white">{country.country_name}</h2>
+                    <h2 className="font-display text-xl text-ink">{country.country_name}</h2>
                     <span className="text-xs tracking-widest text-mist/50">
                       {items.length} {items.length === 1 ? 'MEMORY' : 'MEMORIES'}
                     </span>
@@ -202,7 +202,7 @@ export default function Memories() {
 
 function MemoryCard({ memory, canDelete, onDelete }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-navy-line bg-navy-soft/50">
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white">
       {memory.photo_url ? (
         <a href={memory.photo_url} target="_blank" rel="noreferrer" className="block">
           <img
@@ -212,7 +212,7 @@ function MemoryCard({ memory, canDelete, onDelete }) {
           />
         </a>
       ) : (
-        <div className="flex h-56 w-full items-center justify-center bg-navy-deep/40 text-mist/40">
+        <div className="flex h-56 w-full items-center justify-center bg-cloud text-mist/40">
           <span className="text-xs tracking-widest">NO PHOTO</span>
         </div>
       )}
@@ -228,7 +228,7 @@ function MemoryCard({ memory, canDelete, onDelete }) {
         <button
           type="button"
           onClick={onDelete}
-          className="absolute right-3 top-3 rounded-full border border-navy-line bg-navy-deep/80 px-2 py-0.5 text-[11px] text-mist/70 opacity-0 transition-all hover:border-red-400/50 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
+          className="absolute right-3 top-3 rounded-full border border-slate-200 bg-ink/60 px-2 py-0.5 text-[11px] text-mist/70 opacity-0 transition-all hover:border-red-400/50 hover:text-red-700 focus:opacity-100 group-hover:opacity-100"
           aria-label="Delete memory"
         >
           ✕
@@ -241,6 +241,6 @@ function MemoryCard({ memory, canDelete, onDelete }) {
 function navClass({ isActive }) {
   return [
     'text-sm tracking-wide transition-colors',
-    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+    isActive ? 'text-ink' : 'text-mist/70 hover:text-ink',
   ].join(' ')
 }

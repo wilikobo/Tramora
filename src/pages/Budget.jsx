@@ -177,7 +177,7 @@ export default function Budget() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
+    <main className="relative min-h-screen bg-cloud">
       <div className="pointer-events-none absolute inset-0 z-0">
         <WorldContour className="h-full w-full" opacity={0.04} />
       </div>
@@ -185,7 +185,7 @@ export default function Budget() {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
         <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-xl text-white">Wayra</span>
+          <span className="font-display text-xl text-ink">Wayra</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-6">
           <NavLink to="/dashboard" className={navClass} end>Home</NavLink>
@@ -204,7 +204,7 @@ export default function Budget() {
       </header>
 
       <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-2">
-        <div className="mb-4 flex items-center gap-3 text-[11px] font-medium tracking-[0.32em] text-teal-soft">
+        <div className="mb-4 flex items-center gap-3 text-[11px] font-medium tracking-[0.32em] text-sky">
           <span className="h-px w-8 bg-teal/60" />
           <span>BUDGET</span>
         </div>
@@ -220,7 +220,7 @@ export default function Budget() {
           </div>
           <div className="flex items-center gap-3">
             {savedFlash ? (
-              <span className="text-xs tracking-widest text-teal-soft">SAVED ✓</span>
+              <span className="text-xs tracking-widest text-sky">SAVED ✓</span>
             ) : null}
             <button
               type="button"
@@ -238,7 +238,7 @@ export default function Budget() {
         </div>
 
         {error ? (
-          <p className="mt-6 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
@@ -247,10 +247,10 @@ export default function Budget() {
           <p className="mt-10 text-sm text-mist/60">Loading budget…</p>
         ) : (
           <>
-            <div className="mt-10 rounded-2xl border border-navy-line bg-navy-soft/40 p-6">
+            <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
               <label htmlFor="total-budget" className="auth-label">Total trip budget</label>
               <div className="flex items-center gap-3">
-                <span className="text-3xl font-display text-white">€</span>
+                <span className="text-3xl font-display text-ink">€</span>
                 <input
                   id="total-budget"
                   type="number"
@@ -259,17 +259,17 @@ export default function Budget() {
                   value={budget.total_budget || ''}
                   onChange={(e) => setField('total_budget', e.target.value)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-navy-line bg-navy-deep/60 px-4 py-3 text-3xl font-display text-white placeholder:text-mist/30 focus:border-teal/60 focus:outline-none focus:ring-2 focus:ring-teal/20"
+                  className="w-full rounded-xl border border-slate-200 bg-white/95 px-4 py-3 text-3xl font-display text-ink placeholder:text-mist/30 focus:border-sky/60 focus:outline-none focus:ring-2 focus:ring-teal/20"
                 />
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                 <span className="text-mist/60">Allocated:</span>
-                <span className="text-white tabular-nums">€{sumCategories.toFixed(0)}</span>
+                <span className="text-ink tabular-nums">€{sumCategories.toFixed(0)}</span>
                 <span className="text-mist/60">Remaining:</span>
                 <span
                   className={[
                     'tabular-nums font-medium',
-                    remaining < 0 ? 'text-red-300' : 'text-teal-soft',
+                    remaining < 0 ? 'text-red-300' : 'text-sky',
                   ].join(' ')}
                 >
                   €{remaining.toFixed(0)}
@@ -278,7 +278,7 @@ export default function Budget() {
             </div>
 
             <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
-              <div className="rounded-2xl border border-navy-line bg-navy-soft/40 p-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
                 <div className="mb-4 text-[11px] tracking-[0.32em] text-muted">
                   DISTRIBUTION
                 </div>
@@ -320,7 +320,7 @@ export default function Budget() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-navy-line bg-navy-soft/40 p-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
                 <div className="mb-4 text-[11px] tracking-[0.32em] text-muted">
                   CATEGORIES
                 </div>
@@ -341,7 +341,7 @@ export default function Budget() {
                           value={budget[c.key] || ''}
                           onChange={(e) => setField(c.key, e.target.value)}
                           placeholder="0"
-                          className="w-full rounded-lg border border-navy-line bg-navy-deep/60 px-3 py-1.5 text-sm text-mist focus:border-teal/60 focus:outline-none focus:ring-1 focus:ring-teal/30"
+                          className="w-full rounded-lg border border-slate-200 bg-white/95 px-3 py-1.5 text-sm text-mist focus:border-sky/60 focus:outline-none focus:ring-1 focus:ring-teal/30"
                           style={{ borderLeft: `3px solid ${c.color}` }}
                         />
                       </div>
@@ -351,10 +351,10 @@ export default function Budget() {
               </div>
             </div>
 
-            <div className="mt-8 overflow-hidden rounded-2xl border border-navy-line bg-navy-soft/40">
+            <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-navy-line text-left text-[10px] tracking-[0.32em] text-muted">
+                  <tr className="border-b border-slate-200 text-left text-[10px] tracking-[0.32em] text-muted">
                     <th className="px-5 py-3 font-medium">CATEGORY</th>
                     <th className="px-5 py-3 font-medium text-right">BUDGET</th>
                     <th className="px-5 py-3 font-medium text-right">% OF TOTAL</th>
@@ -367,7 +367,7 @@ export default function Budget() {
                     const pctTotal = totalBudget > 0 ? (val / totalBudget) * 100 : 0
                     const pctAlloc = sumCategories > 0 ? (val / sumCategories) * 100 : 0
                     return (
-                      <tr key={c.key} className="border-b border-navy-line/60 last:border-b-0">
+                      <tr key={c.key} className="border-b border-slate-200/60 last:border-b-0">
                         <td className="px-5 py-3">
                           <span className="inline-flex items-center gap-2 text-mist">
                             <span
@@ -378,7 +378,7 @@ export default function Budget() {
                             <span>{c.label}</span>
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-white">
+                        <td className="px-5 py-3 text-right tabular-nums text-ink">
                           €{val.toFixed(0)}
                         </td>
                         <td className="px-5 py-3 text-right tabular-nums text-mist/70">
@@ -390,9 +390,9 @@ export default function Budget() {
                       </tr>
                     )
                   })}
-                  <tr className="bg-navy-deep/40 font-medium">
+                  <tr className="bg-cloud font-medium">
                     <td className="px-5 py-3 text-mist/80">Total allocated</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-white">
+                    <td className="px-5 py-3 text-right tabular-nums text-ink">
                       €{sumCategories.toFixed(0)}
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-mist/70">
@@ -405,7 +405,7 @@ export default function Budget() {
                     <td
                       className={[
                         'px-5 py-3 text-right tabular-nums font-medium',
-                        remaining < 0 ? 'text-red-300' : 'text-teal-soft',
+                        remaining < 0 ? 'text-red-300' : 'text-sky',
                       ].join(' ')}
                     >
                       €{remaining.toFixed(0)}
@@ -428,6 +428,6 @@ export default function Budget() {
 function navClass({ isActive }) {
   return [
     'text-sm tracking-wide transition-colors',
-    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+    isActive ? 'text-ink' : 'text-mist/70 hover:text-ink',
   ].join(' ')
 }

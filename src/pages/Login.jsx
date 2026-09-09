@@ -45,7 +45,7 @@ export default function Login() {
       footer={
         <>
           New to Wayra?{' '}
-          <Link to="/register" className="text-teal-soft hover:text-teal">
+          <Link to="/register" className="font-medium text-sky hover:text-sky-deep">
             Create an account
           </Link>
         </>
@@ -85,7 +85,7 @@ export default function Login() {
         </div>
 
         {error ? (
-          <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
@@ -94,10 +94,10 @@ export default function Login() {
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
 
-        <div className="flex items-center gap-3 text-[11px] tracking-[0.32em] text-muted">
-          <span className="h-px flex-1 bg-navy-line" />
+        <div className="flex items-center gap-3 text-[11px] tracking-[0.32em] text-ink-muted">
+          <span className="h-px flex-1 bg-slate-200" />
           <span>OR</span>
-          <span className="h-px flex-1 bg-navy-line" />
+          <span className="h-px flex-1 bg-slate-200" />
         </div>
 
         <button type="button" onClick={handleGoogle} className="btn-oauth w-full">

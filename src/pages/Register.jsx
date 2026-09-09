@@ -51,7 +51,7 @@ export default function Register() {
       footer={
         <>
           Already have an account?{' '}
-          <Link to="/login" className="text-teal-soft hover:text-teal">
+          <Link to="/login" className="font-medium text-sky hover:text-sky-deep">
             Sign in
           </Link>
         </>
@@ -128,12 +128,12 @@ export default function Register() {
         </div>
 
         {error ? (
-          <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
         {info ? (
-          <p className="rounded-lg border border-teal/30 bg-teal/10 px-3 py-2 text-sm text-teal-soft">
+          <p className="rounded-lg border border-forest/30 bg-forest/10 px-3 py-2 text-sm text-forest-deep">
             {info}
           </p>
         ) : null}

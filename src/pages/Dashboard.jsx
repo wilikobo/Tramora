@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import WorldContour from '../components/WorldContour.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
+// The mini-world stays dark for contrast against the light UI (per spec).
 const STATUS_FILL = {
-  done: '#14B8A6',
+  done: '#10B981',
   planned: '#F59E0B',
   wishlist: '#6366F1',
 }
-const DEFAULT_FILL = '#111C2F'
-const STROKE = '#0B1220'
+const DEFAULT_FILL = '#1E293B'
+const STROKE = '#0F172A'
 
 function greetingFor(date = new Date()) {
   const h = date.getHours()
@@ -112,125 +112,107 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <WorldContour className="h-full w-full" opacity={0.035} />
-      </div>
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        <div
-          className="absolute -left-40 top-[-10%] h-[560px] w-[720px] rounded-full blur-3xl"
-          style={{
-            background:
-              'radial-gradient(closest-side, rgba(20,184,166,0.16), rgba(20,184,166,0) 70%)',
-          }}
-        />
-        <div
-          className="absolute right-[-10%] top-[35%] h-[420px] w-[520px] rounded-full blur-3xl"
-          style={{
-            background:
-              'radial-gradient(closest-side, rgba(245,158,11,0.12), rgba(245,158,11,0) 70%)',
-          }}
-        />
-      </div>
-
-      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
-        <Link to="/dashboard" className="flex items-center gap-3">
-          <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-xl text-white">Wayra</span>
-        </Link>
-        <nav className="flex items-center gap-2 sm:gap-6">
-          <NavLink to="/dashboard" className={navClass} end>
-            Home
-          </NavLink>
-          <NavLink to="/map" className={navClass}>
-            Map
-          </NavLink>
-          <NavLink to="/trips" className={navClass}>
-            Trips
-          </NavLink>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="btn-ghost"
-          >
-            {signingOut ? 'Signing out…' : 'Sign out'}
-          </button>
-        </nav>
+    <main className="relative min-h-screen bg-cloud">
+      {/* ── Top nav ─────────────────────────────────────────── */}
+      <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/85 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <img src="/logo.png" width="36" height="36" alt="Wayra" className="rounded-full" />
+            <span className="font-display text-xl text-ink">Wayra</span>
+          </Link>
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <NavLink to="/dashboard" className={navClass} end>Home</NavLink>
+            <NavLink to="/map" className={navClass}>Map</NavLink>
+            <NavLink to="/trips" className={navClass}>Trips</NavLink>
+            <NavLink to="/profile" className={navClass}>Profile</NavLink>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="ml-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-sky/40 hover:text-sky"
+            >
+              {signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
+          </nav>
+        </div>
       </header>
 
-      <section className="relative z-10 mx-auto max-w-6xl px-6 pb-28 pt-6 sm:pt-12">
-        <div className="text-sm text-mist/60">
-          {greeting}, <span className="text-mist/80">{displayName}</span>.
+      <section className="mx-auto max-w-7xl px-6 pb-24 pt-10">
+        {/* ── Hello + hero ───────────────────────────────────── */}
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <div className="text-sm text-ink-muted">
+              {greeting}, <span className="font-medium text-ink">{displayName}</span>.
+            </div>
+            <h1 className="mt-2 font-display text-4xl leading-tight text-ink sm:text-5xl">
+              Where to next<span className="text-sand">?</span>
+            </h1>
+            <p className="mt-3 max-w-xl text-ink-soft">
+              Your journey lives here — pins, plans, and the people you're sharing them with.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link to="/trips" className="btn-primary !py-2.5 !px-5 text-sm">New trip</Link>
+            <Link to="/map" className="btn-ghost !py-2.5 !px-5 text-sm">Open map</Link>
+          </div>
         </div>
-        <h1 className="mt-3 font-display text-5xl leading-tight text-white sm:text-6xl">
-          Where to next
-          <span className="text-gold">?</span>
-        </h1>
-        <p className="mt-4 max-w-xl text-base text-mist/70">
-          Your journey lives here — pins, plans, and the people you're sharing them with.
-        </p>
 
-        <div className="mt-20 grid grid-cols-1 gap-10 sm:mt-24 sm:grid-cols-3">
-          <StatWide
+        {/* ── Stats ─────────────────────────────────────────── */}
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <StatCard
             value={stats.visited}
             label="Countries visited"
-            tone="gold"
+            tone="forest"
             loading={statsLoading}
+            icon={<PinIcon />}
           />
-          <StatWide
+          <StatCard
             value={stats.trips}
             label="Trips created"
-            tone="teal"
+            tone="sky"
             loading={statsLoading}
+            icon={<SuitcaseIcon />}
           />
-          <StatWide
+          <StatCard
             value={stats.planned}
             label="Activities planned"
-            tone="teal"
+            tone="sand"
             loading={statsLoading}
+            icon={<SparkIcon />}
           />
         </div>
 
-        <div className="mt-24 grid grid-cols-1 gap-10 lg:grid-cols-5">
+        {/* ── Latest trip + mini world ──────────────────────── */}
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-5">
           <div className="lg:col-span-3">
-            <div className="text-[11px] tracking-[0.32em] text-teal-soft">
-              LATEST TRIP
-            </div>
-            <div className="mt-4">
-              {latestTrip ? (
-                <LatestTripCard
-                  trip={latestTrip}
-                  counts={latestTripCounts}
-                  onOpen={() => navigate(`/trips/${latestTrip.id}`)}
-                />
-              ) : (
-                <div className="rounded-2xl p-8 shadow-[0_0_60px_-30px_rgba(20,184,166,0.4)] ring-1 ring-teal/10">
-                  <div className="font-display text-2xl text-white">No trips yet</div>
-                  <p className="mt-2 text-sm text-mist/60">
-                    Start your first journey — invite a friend or plan solo.
-                  </p>
-                  <Link
-                    to="/trips"
-                    className="mt-6 inline-block text-sm text-teal-soft hover:text-teal"
-                  >
-                    Create a trip →
-                  </Link>
-                </div>
-              )}
-            </div>
+            <SectionLabel>Latest trip</SectionLabel>
+            {latestTrip ? (
+              <LatestTripCard
+                trip={latestTrip}
+                counts={latestTripCounts}
+                onOpen={() => navigate(`/trips/${latestTrip.id}`)}
+              />
+            ) : (
+              <div className="card p-8">
+                <div className="font-display text-2xl text-ink">No trips yet</div>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Start your first journey — invite a friend or plan solo.
+                </p>
+                <Link to="/trips" className="mt-6 inline-block text-sm font-medium text-sky hover:text-sky-deep">
+                  Create a trip →
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-2">
-            <div className="text-[11px] tracking-[0.32em] text-gold">
-              YOUR WORLD
-            </div>
-            <div className="mt-4 overflow-hidden rounded-2xl bg-navy-deep/40 shadow-[0_0_60px_-30px_rgba(20,184,166,0.35)] ring-1 ring-teal/10">
+            <SectionLabel>Your world</SectionLabel>
+            <div className="overflow-hidden rounded-2xl bg-[#0F172A] shadow-lift ring-1 ring-slate-900/5">
               <div className="pointer-events-none aspect-[4/3] w-full">
                 <MiniWorld statusByCode={mapStatusByCode} />
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-mist/50">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-muted">
               <LegendDot color={STATUS_FILL.done} label="Visited" />
               <LegendDot color={STATUS_FILL.planned} label="Planned" />
               <LegendDot color={STATUS_FILL.wishlist} label="Wishlist" />
@@ -238,14 +220,27 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="mt-24">
-          <div className="text-[11px] tracking-[0.32em] text-gold">QUICK ACTIONS</div>
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-10 sm:gap-y-3">
-            <QuickAction to="/map" label="Open your map" />
-            <QuickAction to="/trips" label="Plan a new trip" />
-            <QuickAction
+        {/* ── Quick actions ─────────────────────────────────── */}
+        <div className="mt-12">
+          <SectionLabel>Quick actions</SectionLabel>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <QuickCard
+              to="/map"
+              title="Open your map"
+              body="See every pin from every trip in one view."
+              tone="sky"
+            />
+            <QuickCard
+              to="/trips"
+              title="Plan a new trip"
+              body="Sketch dates, invite your companion, drop pins."
+              tone="forest"
+            />
+            <QuickCard
               to={latestTrip ? `/trips/${latestTrip.id}/memories` : '/trips'}
-              label="Add a memory"
+              title="Add a memory"
+              body="Photos, notes, moments — pinned to the map."
+              tone="sand"
             />
           </div>
         </div>
@@ -256,20 +251,40 @@ export default function Dashboard() {
 
 function navClass({ isActive }) {
   return [
-    'text-sm tracking-wide transition-colors',
-    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+    isActive
+      ? 'bg-sky/10 text-sky-deep'
+      : 'text-ink-soft hover:bg-slate-100 hover:text-ink',
   ].join(' ')
 }
 
-function StatWide({ value, label, tone, loading }) {
-  const color = tone === 'gold' ? 'text-gold' : 'text-teal-soft'
+function SectionLabel({ children }) {
   return (
-    <div className="flex flex-col">
-      <div className={['font-display text-6xl leading-none', color].join(' ')}>
-        {loading ? '—' : value}
+    <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-muted">
+      {children}
+    </div>
+  )
+}
+
+function StatCard({ value, label, tone, loading, icon }) {
+  const toneClasses = {
+    sky: { bg: 'bg-sky/10', text: 'text-sky' },
+    forest: { bg: 'bg-forest/10', text: 'text-forest' },
+    sand: { bg: 'bg-sand/15', text: 'text-[#B45309]' },
+  }[tone]
+
+  return (
+    <div className="card p-6">
+      <div className="flex items-center justify-between">
+        <div className={['flex h-10 w-10 items-center justify-center rounded-xl', toneClasses.bg, toneClasses.text].join(' ')}>
+          {icon}
+        </div>
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
+          {label}
+        </span>
       </div>
-      <div className="mt-3 text-[11px] font-medium tracking-[0.28em] text-mist/50">
-        {label.toUpperCase()}
+      <div className={['mt-6 font-display text-5xl leading-none', toneClasses.text].join(' ')}>
+        {loading ? '—' : value}
       </div>
     </div>
   )
@@ -281,11 +296,11 @@ function LatestTripCard({ trip, counts, onOpen }) {
     <button
       type="button"
       onClick={onOpen}
-      className="group block w-full rounded-2xl p-8 text-left shadow-[0_0_60px_-30px_rgba(20,184,166,0.45)] ring-1 ring-teal/10 transition-shadow hover:shadow-[0_0_80px_-25px_rgba(20,184,166,0.55)]"
+      className="group block w-full rounded-2xl border border-slate-100 bg-white p-8 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <div className="font-display text-3xl text-white">{trip.name}</div>
-        <div className="text-xs tracking-[0.28em] text-mist/40">
+        <div className="font-display text-3xl text-ink">{trip.name}</div>
+        <div className="text-xs font-medium uppercase tracking-widest text-ink-muted">
           {new Date(trip.created_at).toLocaleDateString(undefined, {
             month: 'short',
             year: 'numeric',
@@ -294,47 +309,44 @@ function LatestTripCard({ trip, counts, onOpen }) {
       </div>
 
       <div className="mt-8">
-        <div className="flex items-center justify-between text-[11px] tracking-[0.24em] text-mist/50">
-          <span>PROGRESS</span>
-          <span className="tabular-nums text-mist/70">
+        <div className="flex items-center justify-between text-xs font-medium text-ink-muted">
+          <span className="uppercase tracking-widest">Progress</span>
+          <span className="tabular-nums text-ink">
             {counts.done} / {counts.total || 0} visited
           </span>
         </div>
-        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-navy-deep/70">
+        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-teal to-gold transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-sky to-forest transition-all"
             style={{ width: `${pct}%` }}
           />
         </div>
       </div>
 
-      <div className="mt-6 text-xs text-mist/50 transition-colors group-hover:text-teal-soft">
+      <div className="mt-6 text-sm font-medium text-sky transition-colors group-hover:text-sky-deep">
         Open this trip →
       </div>
     </button>
   )
 }
 
-function QuickAction({ to, label }) {
+function QuickCard({ to, title, body, tone }) {
+  const toneClasses = {
+    sky: 'from-sky/10 to-sky/5 text-sky',
+    forest: 'from-forest/10 to-forest/5 text-forest',
+    sand: 'from-sand/20 to-sand/5 text-[#B45309]',
+  }[tone]
+
   return (
     <Link
       to={to}
-      className="group inline-flex items-center gap-3 text-base text-mist/80 transition-colors hover:text-gold"
+      className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift"
     >
-      <svg
-        aria-hidden
-        viewBox="0 0 24 24"
-        className="h-4 w-4 text-teal-soft transition-transform group-hover:translate-x-0.5 group-hover:text-gold"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <line x1="4" y1="12" x2="19" y2="12" />
-        <polyline points="13 6 19 12 13 18" />
-      </svg>
-      <span>{label}</span>
+      <div className={['mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br', toneClasses].join(' ')}>
+        <ArrowIcon />
+      </div>
+      <div className="font-display text-lg text-ink">{title}</div>
+      <div className="mt-1 text-sm text-ink-soft">{body}</div>
     </Link>
   )
 }
@@ -342,10 +354,7 @@ function QuickAction({ to, label }) {
 function LegendDot({ color, label }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block h-2 w-2 rounded-full"
-        style={{ backgroundColor: color }}
-      />
+      <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
       {label}
     </span>
   )
@@ -383,5 +392,41 @@ function MiniWorld({ statusByCode }) {
         }
       </Geographies>
     </ComposableMap>
+  )
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="4" y1="12" x2="19" y2="12" />
+      <polyline points="13 6 19 12 13 18" />
+    </svg>
+  )
+}
+
+function PinIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  )
+}
+
+function SuitcaseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+      <path d="M3 12h18" />
+    </svg>
+  )
+}
+
+function SparkIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6" />
+    </svg>
   )
 }

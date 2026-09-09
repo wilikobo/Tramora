@@ -11,7 +11,7 @@ const TABS = [
 export default function TripTabs({ tripId }) {
   if (!tripId) return null
   return (
-    <div className="flex flex-wrap items-center gap-1 rounded-full border border-navy-line bg-navy-deep/70 p-1 backdrop-blur">
+    <div className="flex flex-wrap items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-card">
       {TABS.map((tab) => (
         <NavLink
           key={tab.label}
@@ -19,10 +19,10 @@ export default function TripTabs({ tripId }) {
           end={tab.end}
           className={({ isActive }) =>
             [
-              'rounded-full px-4 py-1.5 text-xs tracking-wide transition-colors',
+              'rounded-full px-4 py-1.5 text-xs font-medium tracking-wide transition-colors',
               isActive
-                ? 'bg-teal/20 text-white shadow-[0_0_20px_-8px_rgba(20,184,166,0.55)]'
-                : 'text-mist/70 hover:text-white',
+                ? 'bg-sky text-white shadow-[0_4px_12px_-4px_rgba(37,99,235,0.5)]'
+                : 'text-ink-soft hover:bg-slate-100 hover:text-ink',
             ].join(' ')
           }
         >

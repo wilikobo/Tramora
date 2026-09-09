@@ -1,7 +1,7 @@
 // A stylised, low-detail world contour rendered as pure SVG paths.
 // Kept intentionally simple so it reads as a decorative motif at very low
 // opacity rather than a data-accurate map.
-export default function WorldContour({ className = '', color = '#14B8A6', opacity = 0.04 }) {
+export default function WorldContour({ className = '', color = '#2563EB', opacity = 0.06 }) {
   return (
     <svg
       viewBox="0 0 1600 800"

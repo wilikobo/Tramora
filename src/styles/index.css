@@ -10,52 +10,84 @@
   }
 
   body {
-    @apply bg-navy text-mist font-sans antialiased;
+    @apply bg-paper text-ink font-sans antialiased;
     font-feature-settings: 'ss01', 'cv11';
   }
 
   ::selection {
-    background: rgba(20, 184, 166, 0.35);
-    color: #fff;
+    background: rgba(37, 99, 235, 0.18);
+    color: #0F172A;
   }
 }
 
 @layer components {
   .headline {
-    @apply font-display tracking-tightish text-white;
+    @apply font-display tracking-tightish text-ink;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-teal px-8 py-3 font-medium text-navy-deep
-           transition-all duration-300 ease-out hover:bg-teal-soft hover:shadow-glow
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-soft focus-visible:ring-offset-2
-           focus-visible:ring-offset-navy active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-full bg-sky px-8 py-3.5 font-medium text-white
+           shadow-[0_8px_24px_-8px_rgba(37,99,235,0.55)]
+           transition-all duration-300 ease-out hover:bg-sky-deep hover:shadow-[0_12px_32px_-8px_rgba(37,99,235,0.7)]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2
+           focus-visible:ring-offset-paper active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full bg-forest px-8 py-3.5 font-medium text-white
+           shadow-[0_8px_24px_-8px_rgba(16,185,129,0.55)]
+           transition-all duration-300 ease-out hover:bg-forest-deep hover:shadow-[0_12px_32px_-8px_rgba(16,185,129,0.7)]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2
+           focus-visible:ring-offset-paper active:scale-[0.98];
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-full border border-navy-line px-6 py-3
-           font-medium text-mist transition-all duration-300 hover:border-teal/50 hover:text-white;
+    @apply inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3
+           font-medium text-ink transition-all duration-300 hover:border-sky/40 hover:text-sky
+           hover:shadow-sm;
   }
 
   .btn-oauth {
-    @apply inline-flex items-center justify-center gap-3 rounded-full border border-navy-line
-           bg-navy-deep/60 px-6 py-3 font-medium text-mist transition-all duration-300
-           hover:border-teal/40 hover:text-white focus:outline-none focus-visible:ring-2
-           focus-visible:ring-teal-soft focus-visible:ring-offset-2 focus-visible:ring-offset-navy;
+    @apply inline-flex items-center justify-center gap-3 rounded-full border border-slate-200
+           bg-white px-6 py-3 font-medium text-ink transition-all duration-300
+           hover:border-sky/40 hover:bg-cloud focus:outline-none focus-visible:ring-2
+           focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
 
   .auth-label {
-    @apply mb-2 block text-[11px] font-medium uppercase tracking-[0.28em] text-muted;
+    @apply mb-2 block text-[11px] font-medium uppercase tracking-[0.28em] text-ink-muted;
   }
 
   .auth-input {
-    @apply w-full rounded-xl border border-navy-line bg-navy-deep/60 px-4 py-3 text-mist
-           placeholder:text-muted/50 transition-colors duration-200
-           focus:border-teal/60 focus:outline-none focus:ring-2 focus:ring-teal/20;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-ink
+           placeholder:text-slate-400 transition-colors duration-200
+           focus:border-sky focus:outline-none focus:ring-4 focus:ring-sky/10;
+  }
+
+  .card {
+    @apply rounded-2xl border border-slate-100 bg-white shadow-card;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-ink-soft;
+  }
+
+  .chip-sky {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-sky/10 px-3 py-1 text-xs font-medium text-sky-deep;
+  }
+
+  .chip-forest {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-forest/10 px-3 py-1 text-xs font-medium text-forest-deep;
+  }
+
+  .chip-sand {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-sand/15 px-3 py-1 text-xs font-medium text-[#B45309];
   }
 }
 
 .btn-primary:disabled,
-.btn-oauth:disabled {
+.btn-secondary:disabled,
+.btn-oauth:disabled,
+.btn-ghost:disabled {
   @apply cursor-not-allowed opacity-60;
 }

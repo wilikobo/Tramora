@@ -76,7 +76,7 @@ export default function Trips() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
+    <main className="relative min-h-screen bg-cloud">
       <div className="pointer-events-none absolute inset-0 z-0">
         <WorldContour className="h-full w-full" opacity={0.045} />
       </div>
@@ -84,7 +84,7 @@ export default function Trips() {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
         <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-xl text-white">Wayra</span>
+          <span className="font-display text-xl text-ink">Wayra</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-6">
           <NavLink to="/dashboard" className={navClass} end>
@@ -133,11 +133,11 @@ export default function Trips() {
           {loading ? (
             <p className="text-sm text-mist/60">Loading your trips…</p>
           ) : error ? (
-            <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           ) : trips.length === 0 ? (
-            <div className="rounded-2xl border border-navy-line bg-navy-soft/40 px-6 py-10 text-center">
+            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center">
               <p className="text-mist/70">No trips yet.</p>
               <p className="mt-1 text-sm text-mist/50">
                 Create your first one and invite a travel partner.
@@ -212,7 +212,7 @@ export default function Trips() {
 function navClass({ isActive }) {
   return [
     'text-sm tracking-wide transition-colors',
-    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+    isActive ? 'text-ink' : 'text-mist/70 hover:text-ink',
   ].join(' ')
 }
 
@@ -222,11 +222,11 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
   const isDemo = trip.name === DEMO_TRIP_NAME
 
   return (
-    <div className="group relative flex h-full flex-col rounded-2xl border border-navy-line bg-navy-soft/50 shadow-soft backdrop-blur-sm transition-colors hover:border-gold/50 hover:bg-gold/5">
+    <div className="group relative flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-soft backdrop-blur-sm transition-colors hover:border-gold/50 hover:bg-gold/5">
       <button
         type="button"
         onClick={onDelete}
-        className="absolute right-3 top-3 z-10 rounded-full border border-navy-line bg-navy-deep/70 px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
+        className="absolute right-3 top-3 z-10 rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-700 focus:opacity-100 group-hover:opacity-100"
         aria-label={`Delete ${trip.name}`}
       >
         ✕
@@ -247,7 +247,7 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
             </span>
           ) : null}
         </div>
-        <div className="mt-3 font-display text-2xl text-white">{trip.name}</div>
+        <div className="mt-3 font-display text-2xl text-ink">{trip.name}</div>
         <div className="mt-2 text-sm text-mist/60">
           {hasPartner ? (
             <>
@@ -269,10 +269,10 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
           Open trip map →
         </div>
       </button>
-      <div className="mx-6 mb-4 flex flex-wrap items-center justify-between gap-3 border-t border-navy-line/70 pt-3">
+      <div className="mx-6 mb-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
         <Link
           to={`/trips/${trip.id}/activities`}
-          className="text-xs tracking-wide text-teal-soft transition-colors hover:text-teal"
+          className="text-xs tracking-wide text-sky transition-colors hover:text-sky-deep"
         >
           View activities →
         </Link>
@@ -280,7 +280,7 @@ function TripCard({ trip, isOwner, partnerName, onOpen, onDelete, onInvite }) {
           <button
             type="button"
             onClick={onInvite}
-            className="rounded-full border border-teal/30 bg-teal/10 px-3 py-1 text-xs tracking-wide text-teal-soft transition-colors hover:border-teal/60 hover:bg-teal/20 hover:text-white"
+            className="rounded-full border border-sky/30 bg-sky/10 px-3 py-1 text-xs tracking-wide text-sky transition-colors hover:border-sky/60 hover:bg-sky/15 hover:text-ink"
           >
             {isPending ? 'Update invite' : 'Invite friend'}
           </button>
@@ -323,7 +323,7 @@ function InviteFriendModal({ trip, onClose, onSaved }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -331,20 +331,20 @@ function InviteFriendModal({ trip, onClose, onSaved }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="w-full max-w-md rounded-2xl border border-teal/20 bg-navy-soft/95 p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
+        className="w-full max-w-md rounded-2xl border border-sky/20 bg-white p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <div className="text-[11px] tracking-[0.32em] text-teal-soft">INVITE FRIEND</div>
-            <h2 className="mt-2 font-display text-2xl text-white">
+            <div className="text-[11px] tracking-[0.32em] text-sky">INVITE FRIEND</div>
+            <h2 className="mt-2 font-display text-2xl text-ink">
               Invite to “{trip.name}”
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-navy-line px-3 py-1 text-xs text-mist/70 hover:border-teal/40 hover:text-white"
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-mist/70 hover:border-sky/40 hover:text-ink"
           >
             ✕
           </button>
@@ -371,7 +371,7 @@ function InviteFriendModal({ trip, onClose, onSaved }) {
           </div>
 
           {error ? (
-            <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           ) : null}
@@ -380,7 +380,7 @@ function InviteFriendModal({ trip, onClose, onSaved }) {
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-mist/70 hover:text-white"
+              className="text-sm text-mist/70 hover:text-ink"
               disabled={saving}
             >
               Cancel
@@ -416,7 +416,7 @@ function DeleteTripModal({ trip, onClose, onDeleted }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -424,11 +424,11 @@ function DeleteTripModal({ trip, onClose, onDeleted }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="w-full max-w-md rounded-2xl border border-red-400/30 bg-navy-soft/95 p-6 shadow-[0_0_80px_-20px_rgba(248,113,113,0.35)]"
+        className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-[0_0_80px_-20px_rgba(248,113,113,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-[11px] tracking-[0.32em] text-red-200">DELETE TRIP</div>
-        <h2 className="mt-2 font-display text-2xl text-white">
+        <div className="text-[11px] tracking-[0.32em] text-red-700">DELETE TRIP</div>
+        <h2 className="mt-2 font-display text-2xl text-ink">
           Delete “{trip.name}”?
         </h2>
         <p className="mt-3 text-sm text-mist/70">
@@ -437,7 +437,7 @@ function DeleteTripModal({ trip, onClose, onDeleted }) {
         </p>
 
         {error ? (
-          <p className="mt-4 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
@@ -446,7 +446,7 @@ function DeleteTripModal({ trip, onClose, onDeleted }) {
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-mist/70 hover:text-white"
+            className="text-sm text-mist/70 hover:text-ink"
             disabled={deleting}
           >
             Cancel
@@ -455,7 +455,7 @@ function DeleteTripModal({ trip, onClose, onDeleted }) {
             type="button"
             onClick={handleDelete}
             disabled={deleting}
-            className="inline-flex items-center justify-center rounded-full bg-red-500/90 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-full bg-red-500 px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-red-500 disabled:opacity-60"
           >
             {deleting ? 'Deleting…' : 'Delete trip'}
           </button>
@@ -511,7 +511,7 @@ function CreateTripModal({ onClose, onCreated, userId }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -519,18 +519,18 @@ function CreateTripModal({ onClose, onCreated, userId }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="w-full max-w-md rounded-2xl border border-teal/20 bg-navy-soft/90 p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
+        className="w-full max-w-md rounded-2xl border border-sky/20 bg-white p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <div className="text-[11px] tracking-[0.32em] text-teal-soft">NEW TRIP</div>
-            <h2 className="mt-2 font-display text-2xl text-white">Create a trip</h2>
+            <div className="text-[11px] tracking-[0.32em] text-sky">NEW TRIP</div>
+            <h2 className="mt-2 font-display text-2xl text-ink">Create a trip</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-navy-line px-3 py-1 text-xs text-mist/70 hover:border-teal/40 hover:text-white"
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-mist/70 hover:border-sky/40 hover:text-ink"
           >
             ✕
           </button>
@@ -571,7 +571,7 @@ function CreateTripModal({ onClose, onCreated, userId }) {
           </div>
 
           {error ? (
-            <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           ) : null}
@@ -580,7 +580,7 @@ function CreateTripModal({ onClose, onCreated, userId }) {
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-mist/70 hover:text-white"
+              className="text-sm text-mist/70 hover:text-ink"
             >
               Cancel
             </button>

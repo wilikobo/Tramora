@@ -48,7 +48,7 @@ export default function Profile() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
+    <main className="relative min-h-screen bg-cloud">
       <div className="pointer-events-none absolute inset-0 z-0">
         <WorldContour className="h-full w-full" opacity={0.04} />
       </div>
@@ -56,7 +56,7 @@ export default function Profile() {
       <header className="relative z-10 mx-auto flex max-w-3xl items-center justify-between px-6 py-8">
         <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="40" height="40" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-lg text-white">Wayra</span>
+          <span className="font-display text-lg text-ink">Wayra</span>
         </Link>
         <button
           type="button"
@@ -80,7 +80,7 @@ export default function Profile() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-10 space-y-5 rounded-2xl border border-navy-line bg-navy-soft/60 p-6 shadow-soft backdrop-blur-sm"
+          className="mt-10 space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-soft backdrop-blur-sm"
         >
           <div>
             <label htmlFor="email" className="auth-label">
@@ -112,19 +112,19 @@ export default function Profile() {
           </div>
 
           {error ? (
-            <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           ) : null}
 
           {success ? (
-            <p className="rounded-lg border border-teal/30 bg-teal/10 px-3 py-2 text-sm text-teal-soft">
+            <p className="rounded-lg border border-sky/30 bg-sky/10 px-3 py-2 text-sm text-sky">
               Saved. Your profile is up to date.
             </p>
           ) : null}
 
           <div className="flex items-center justify-between gap-3 pt-2">
-            <Link to="/dashboard" className="text-sm text-mist/70 hover:text-white">
+            <Link to="/dashboard" className="text-sm text-mist/70 hover:text-ink">
               Cancel
             </Link>
             <button

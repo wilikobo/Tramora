@@ -207,7 +207,7 @@ export default function Activities() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
+    <main className="relative min-h-screen bg-cloud">
       <div className="pointer-events-none absolute inset-0 z-0">
         <WorldContour className="h-full w-full" opacity={0.04} />
       </div>
@@ -215,7 +215,7 @@ export default function Activities() {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
         <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-xl text-white">Wayra</span>
+          <span className="font-display text-xl text-ink">Wayra</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-6">
           <NavLink to="/dashboard" className={navClass} end>
@@ -288,7 +288,7 @@ export default function Activities() {
         />
 
         {error ? (
-          <p className="mt-4 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
@@ -299,7 +299,7 @@ export default function Activities() {
           ) : activities.length === 0 ? (
             <EmptyState tripId={tripId} hasCountries={countries.length > 0} />
           ) : filtered.length === 0 ? (
-            <p className="rounded-2xl border border-navy-line bg-navy-soft/40 px-6 py-10 text-center text-mist/70">
+            <p className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-mist/70">
               No activities match those filters.
             </p>
           ) : (
@@ -342,13 +342,13 @@ export default function Activities() {
 function navClass({ isActive }) {
   return [
     'text-sm tracking-wide transition-colors',
-    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+    isActive ? 'text-ink' : 'text-mist/70 hover:text-ink',
   ].join(' ')
 }
 
 function EmptyState({ tripId, hasCountries }) {
   return (
-    <div className="rounded-2xl border border-navy-line bg-navy-soft/40 px-6 py-12 text-center">
+    <div className="rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center">
       <p className="text-mist/80">No activities yet.</p>
       <p className="mt-1 text-sm text-mist/50">
         {hasCountries
@@ -380,7 +380,7 @@ function FilterBar({
     fCountry !== 'all' || fCategory !== 'all' || fPriority !== 'all' || fStatus !== 'all'
 
   return (
-    <div className="mt-8 flex flex-wrap items-center gap-3 rounded-2xl border border-navy-line bg-navy-soft/40 px-4 py-3">
+    <div className="mt-8 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
       <FilterSelect
         label="Country"
         value={fCountry}
@@ -423,7 +423,7 @@ function FilterBar({
         <button
           type="button"
           onClick={onReset}
-          className="ml-auto text-xs text-mist/60 hover:text-white"
+          className="ml-auto text-xs text-mist/60 hover:text-ink"
         >
           Reset filters
         </button>
@@ -439,7 +439,7 @@ function FilterSelect({ label, value, onChange, options }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-navy-line bg-navy-deep/70 px-2 py-1.5 text-sm text-mist focus:border-teal/60 focus:outline-none"
+        className="rounded-lg border border-slate-200 bg-white/95 px-2 py-1.5 text-sm text-mist focus:border-sky/60 focus:outline-none"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -475,7 +475,7 @@ function ActivityCard({
     ? 'border-emerald-400/60 bg-emerald-400/5 shadow-[0_0_60px_-25px_rgba(52,211,153,0.6)]'
     : discussion
       ? 'border-orange-400/60 bg-orange-400/5 shadow-[0_0_60px_-25px_rgba(251,146,60,0.55)]'
-      : 'border-navy-line bg-navy-soft/50'
+      : 'border-slate-200 bg-white'
 
   return (
     <div
@@ -487,7 +487,7 @@ function ActivityCard({
       <button
         type="button"
         onClick={() => onDelete(activity.id)}
-        className="absolute right-3 top-3 rounded-full border border-navy-line bg-navy-deep/70 px-2 py-0.5 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
+        className="absolute right-3 top-3 rounded-full border border-slate-200 bg-white/95 px-2 py-0.5 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/50 hover:text-red-700 focus:opacity-100 group-hover:opacity-100"
         aria-label={`Delete ${activity.name}`}
       >
         ✕
@@ -501,13 +501,13 @@ function ActivityCard({
             MUST
           </span>
         ) : (
-          <span className="ml-1 rounded-full border border-navy-line px-2 py-0.5 text-[9px] tracking-widest text-mist/50">
+          <span className="ml-1 rounded-full border border-slate-200 px-2 py-0.5 text-[9px] tracking-widest text-mist/50">
             NICE
           </span>
         )}
       </div>
 
-      <div className="mt-2 pr-6 font-display text-xl leading-snug text-white">
+      <div className="mt-2 pr-6 font-display text-xl leading-snug text-ink">
         {activity.name}
       </div>
 
@@ -557,8 +557,8 @@ function ActivityCard({
           className={[
             'rounded-full border px-3 py-1 text-[11px] tracking-widest transition-colors',
             isDone
-              ? 'border-teal/50 bg-teal/15 text-teal-soft'
-              : 'border-navy-line text-mist/60 hover:border-teal/40 hover:text-white',
+              ? 'border-sky/50 bg-teal/15 text-sky'
+              : 'border-slate-200 text-mist/60 hover:border-sky/40 hover:text-ink',
           ].join(' ')}
           aria-label="Toggle status"
         >
@@ -592,7 +592,7 @@ function VoteButton({ emoji, count, active, tone, onClick }) {
         'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-all',
         active
           ? activeClass
-          : 'border-navy-line bg-navy-deep/50 text-mist/80 hover:border-teal/40 hover:text-white',
+          : 'border-slate-200 bg-white text-mist/80 hover:border-sky/40 hover:text-ink',
       ].join(' ')}
     >
       <span className="leading-none">{emoji}</span>
@@ -657,7 +657,7 @@ function AddActivityModal({ countries, tripId, onClose, onCreated }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -665,18 +665,18 @@ function AddActivityModal({ countries, tripId, onClose, onCreated }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="w-full max-w-md rounded-2xl border border-teal/20 bg-navy-soft/95 p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
+        className="w-full max-w-md rounded-2xl border border-sky/20 bg-white p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <div className="text-[11px] tracking-[0.32em] text-teal-soft">NEW ACTIVITY</div>
-            <h2 className="mt-2 font-display text-2xl text-white">Add a plan</h2>
+            <div className="text-[11px] tracking-[0.32em] text-sky">NEW ACTIVITY</div>
+            <h2 className="mt-2 font-display text-2xl text-ink">Add a plan</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-navy-line px-3 py-1 text-xs text-mist/70 hover:border-teal/40 hover:text-white"
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-mist/70 hover:border-sky/40 hover:text-ink"
           >
             ✕
           </button>
@@ -691,7 +691,7 @@ function AddActivityModal({ countries, tripId, onClose, onCreated }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="text-sm text-mist/70 hover:text-white"
+                className="text-sm text-mist/70 hover:text-ink"
               >
                 Cancel
               </button>
@@ -791,7 +791,7 @@ function AddActivityModal({ countries, tripId, onClose, onCreated }) {
             </div>
 
             {error ? (
-              <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}
               </p>
             ) : null}
@@ -800,7 +800,7 @@ function AddActivityModal({ countries, tripId, onClose, onCreated }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="text-sm text-mist/70 hover:text-white"
+                className="text-sm text-mist/70 hover:text-ink"
               >
                 Cancel
               </button>

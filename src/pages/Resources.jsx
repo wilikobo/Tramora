@@ -157,7 +157,7 @@ export default function Resources() {
   }, [customLinks])
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-navy">
+    <main className="relative min-h-screen bg-cloud">
       <div className="pointer-events-none absolute inset-0 z-0">
         <WorldContour className="h-full w-full" opacity={0.04} />
       </div>
@@ -165,7 +165,7 @@ export default function Resources() {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
         <Link to="/dashboard" className="flex items-center gap-3">
           <img src="/logo.png" width="44" height="44" alt="Wayra" className="rounded-full" />
-          <span className="font-display text-xl text-white">Wayra</span>
+          <span className="font-display text-xl text-ink">Wayra</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-6">
           <NavLink to="/dashboard" className={navClass} end>Home</NavLink>
@@ -184,7 +184,7 @@ export default function Resources() {
       </header>
 
       <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-2">
-        <div className="mb-4 flex items-center gap-3 text-[11px] font-medium tracking-[0.32em] text-teal-soft">
+        <div className="mb-4 flex items-center gap-3 text-[11px] font-medium tracking-[0.32em] text-sky">
           <span className="h-px w-8 bg-teal/60" />
           <span>RESOURCES</span>
         </div>
@@ -192,7 +192,7 @@ export default function Resources() {
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <h1 className="headline text-3xl sm:text-4xl">
-              {trip?.name ? <>{trip.name}<span className="text-teal">.</span></> : 'Travel resources.'}
+              {trip?.name ? <>{trip.name}<span className="text-sky-deep">.</span></> : 'Travel resources.'}
             </h1>
             <p className="mt-2 text-mist/70">
               Every tool worth bookmarking — plus the ones you find along the way.
@@ -212,7 +212,7 @@ export default function Resources() {
         </div>
 
         {error ? (
-          <p className="mt-6 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+          <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}
@@ -265,23 +265,23 @@ export default function Resources() {
 function navClass({ isActive }) {
   return [
     'text-sm tracking-wide transition-colors',
-    isActive ? 'text-white' : 'text-mist/70 hover:text-white',
+    isActive ? 'text-ink' : 'text-mist/70 hover:text-ink',
   ].join(' ')
 }
 
 function CategoryCard({ category, custom, onDelete, currentUserId }) {
   const accentBorder = category.accent === 'gold' ? 'border-gold/25' : 'border-teal/25'
-  const accentLabel = category.accent === 'gold' ? 'text-gold' : 'text-teal-soft'
+  const accentLabel = category.accent === 'gold' ? 'text-gold' : 'text-sky'
 
   return (
-    <div className={['rounded-2xl border bg-navy-soft/40 p-5', accentBorder].join(' ')}>
+    <div className={['rounded-2xl border bg-white p-5', accentBorder].join(' ')}>
       <div className="mb-4 flex items-center gap-3">
         <span className="text-2xl leading-none">{category.icon}</span>
         <div>
           <div className={['text-[11px] tracking-[0.32em]', accentLabel].join(' ')}>
             {category.label.toUpperCase()}
           </div>
-          <h3 className="font-display text-lg text-white">{category.label}</h3>
+          <h3 className="font-display text-lg text-ink">{category.label}</h3>
         </div>
       </div>
       <ul className="space-y-2">
@@ -304,7 +304,7 @@ function CategoryCard({ category, custom, onDelete, currentUserId }) {
 function LinkRow({ item, onDelete, custom }) {
   return (
     <li>
-      <div className="group flex items-start justify-between gap-3 rounded-xl border border-navy-line bg-navy-deep/40 px-3 py-2.5 transition-colors hover:border-teal/40">
+      <div className="group flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-cloud px-3 py-2.5 transition-colors hover:border-sky/40">
         <a
           href={item.url}
           target="_blank"
@@ -312,7 +312,7 @@ function LinkRow({ item, onDelete, custom }) {
           className="min-w-0 flex-1"
         >
           <div className="flex items-center gap-2">
-            <span className="truncate text-sm text-white group-hover:text-teal-soft">
+            <span className="truncate text-sm text-ink group-hover:text-sky">
               {item.title}
             </span>
             {custom ? (
@@ -327,7 +327,7 @@ function LinkRow({ item, onDelete, custom }) {
           <button
             type="button"
             onClick={onDelete}
-            className="shrink-0 rounded-md border border-navy-line px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/40 hover:text-red-200 focus:opacity-100 group-hover:opacity-100"
+            className="shrink-0 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-mist/60 opacity-0 transition-all hover:border-red-400/40 hover:text-red-700 focus:opacity-100 group-hover:opacity-100"
             aria-label="Delete link"
           >
             ✕
@@ -384,7 +384,7 @@ function AddLinkModal({ tripId, userId, onClose, onCreated }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/80 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -392,18 +392,18 @@ function AddLinkModal({ tripId, userId, onClose, onCreated }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="w-full max-w-md rounded-2xl border border-teal/20 bg-navy-soft/95 p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
+        className="w-full max-w-md rounded-2xl border border-sky/20 bg-white p-6 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <div className="text-[11px] tracking-[0.32em] text-teal-soft">NEW LINK</div>
-            <h2 className="mt-2 font-display text-2xl text-white">Add a resource</h2>
+            <div className="text-[11px] tracking-[0.32em] text-sky">NEW LINK</div>
+            <h2 className="mt-2 font-display text-2xl text-ink">Add a resource</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-navy-line px-3 py-1 text-xs text-mist/70 hover:border-teal/40 hover:text-white"
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-mist/70 hover:border-sky/40 hover:text-ink"
           >
             ✕
           </button>
@@ -451,7 +451,7 @@ function AddLinkModal({ tripId, userId, onClose, onCreated }) {
             </select>
           </div>
           {error ? (
-            <p className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           ) : null}
@@ -459,7 +459,7 @@ function AddLinkModal({ tripId, userId, onClose, onCreated }) {
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-mist/70 hover:text-white"
+              className="text-sm text-mist/70 hover:text-ink"
             >
               Cancel
             </button>
