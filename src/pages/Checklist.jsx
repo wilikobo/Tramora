@@ -11,6 +11,8 @@ const CATEGORIES = [
     key: 'documents',
     label: 'Documenten',
     icon: '📄',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     defaults: [
       'Paspoort geldig (6 maanden na terugkeer)',
       'Visum aangevraagd',
@@ -21,6 +23,8 @@ const CATEGORIES = [
     key: 'financial',
     label: 'Financieel',
     icon: '💰',
+    bg: '#F0FDF4',
+    border: '#BBF7D0',
     defaults: [
       'Reisverzekering afgesloten',
       'Wisselgeld geregeld',
@@ -32,6 +36,8 @@ const CATEGORIES = [
     key: 'bookings',
     label: 'Boekingen',
     icon: '✈️',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     defaults: [
       'Vluchten geboekt',
       'Hotel/hostel geboekt',
@@ -43,6 +49,8 @@ const CATEGORIES = [
     key: 'health',
     label: 'Gezondheid',
     icon: '🏥',
+    bg: '#F0FDF4',
+    border: '#BBF7D0',
     defaults: [
       'Vaccins gecontroleerd',
       'Medicatie ingepakt',
@@ -294,7 +302,10 @@ function CategoryCard({ category, items, onToggle, onDelete, onAdd, isAdding, se
   }
 
   return (
-    <div className="rounded-2xl border border-emerald-200/70 bg-white p-5">
+    <div
+      className="rounded-2xl border p-5"
+      style={{ backgroundColor: category.bg, borderColor: category.border }}
+    >
       <div className="mb-4 flex items-center gap-3">
         <span className="text-2xl leading-none">{category.icon}</span>
         <div>

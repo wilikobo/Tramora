@@ -11,6 +11,8 @@ const CATEGORIES = [
     key: 'clothing',
     label: 'Kleding',
     icon: '👕',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     defaults: [
       'T-shirts (x5)',
       'Broeken (x2)',
@@ -25,6 +27,8 @@ const CATEGORIES = [
     key: 'electronics',
     label: 'Elektronica',
     icon: '🔌',
+    bg: '#F0FDF4',
+    border: '#BBF7D0',
     defaults: [
       'Telefoon oplader',
       'Powerbank',
@@ -37,6 +41,8 @@ const CATEGORIES = [
     key: 'health',
     label: 'Medicatie & Gezondheid',
     icon: '💊',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     defaults: [
       'Pijnstillers',
       'Maagpillen',
@@ -49,6 +55,8 @@ const CATEGORIES = [
     key: 'toiletries',
     label: 'Toiletries',
     icon: '🧴',
+    bg: '#F0FDF4',
+    border: '#BBF7D0',
     defaults: [
       'Tandenborstel',
       'Shampoo (reisformaat)',
@@ -60,6 +68,8 @@ const CATEGORIES = [
     key: 'documents',
     label: 'Documenten',
     icon: '📄',
+    bg: '#FFFBEB',
+    border: '#FDE68A',
     defaults: [
       'Paspoort',
       'Verzekeringsdocument',
@@ -315,7 +325,10 @@ function CategoryCard({ category, items, onToggle, onDelete, onAdd, isAdding, se
   }
 
   return (
-    <div className="rounded-2xl border border-sky/25 bg-white p-5">
+    <div
+      className="rounded-2xl border p-5"
+      style={{ backgroundColor: category.bg, borderColor: category.border }}
+    >
       <div className="mb-4 flex items-center gap-3">
         <span className="text-2xl leading-none">{category.icon}</span>
         <div>

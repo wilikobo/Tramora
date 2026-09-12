@@ -12,6 +12,8 @@ const CURATED = [
     label: 'Flights',
     icon: '✈️',
     accent: 'teal',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     items: [
       { title: 'Skyscanner', url: 'https://skyscanner.be', desc: 'Compare flights across every airline' },
       { title: 'Google Flights', url: 'https://flights.google.com', desc: 'Fast search + fare tracking' },
@@ -23,6 +25,8 @@ const CURATED = [
     label: 'Accommodation',
     icon: '🏠',
     accent: 'gold',
+    bg: '#F0FDF4',
+    border: '#BBF7D0',
     items: [
       { title: 'Booking.com', url: 'https://booking.com', desc: 'Hotels, apartments, guesthouses' },
       { title: 'Airbnb', url: 'https://airbnb.com', desc: 'Local stays and unique places' },
@@ -34,6 +38,8 @@ const CURATED = [
     label: 'Transport',
     icon: '🚌',
     accent: 'teal',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     items: [
       { title: 'Rome2rio', url: 'https://rome2rio.com', desc: 'A→B by any mode of transport' },
       { title: 'Omio', url: 'https://omio.com', desc: 'Trains, buses, ferries in Europe' },
@@ -44,6 +50,8 @@ const CURATED = [
     label: 'Money',
     icon: '💳',
     accent: 'gold',
+    bg: '#F0FDF4',
+    border: '#BBF7D0',
     items: [
       { title: 'Wise', url: 'https://wise.com', desc: 'Cheap FX + multi-currency account' },
       { title: 'Revolut', url: 'https://revolut.com', desc: 'Travel card + budgeting' },
@@ -54,6 +62,8 @@ const CURATED = [
     label: 'Activities',
     icon: '🎭',
     accent: 'teal',
+    bg: '#FFFBEB',
+    border: '#FDE68A',
     items: [
       { title: 'GetYourGuide', url: 'https://getyourguide.com', desc: 'Tours & experiences' },
       { title: 'Viator', url: 'https://viator.com', desc: 'Curated activities worldwide' },
@@ -64,6 +74,8 @@ const CURATED = [
     label: 'Practical',
     icon: '🛠️',
     accent: 'gold',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
     items: [
       { title: 'Airalo', url: 'https://airalo.com', desc: 'eSIM data plans, no roaming' },
       { title: 'TravelSpend', url: 'https://travelspend.app', desc: 'Track your travel budget on the go' },
@@ -270,11 +282,13 @@ function navClass({ isActive }) {
 }
 
 function CategoryCard({ category, custom, onDelete, currentUserId }) {
-  const accentBorder = category.accent === 'gold' ? 'border-gold/25' : 'border-teal/25'
   const accentLabel = category.accent === 'gold' ? 'text-gold' : 'text-sky'
 
   return (
-    <div className={['rounded-2xl border bg-white p-5', accentBorder].join(' ')}>
+    <div
+      className="rounded-2xl border p-5"
+      style={{ backgroundColor: category.bg ?? '#FFFFFF', borderColor: category.border ?? '#E5E7EB' }}
+    >
       <div className="mb-4 flex items-center gap-3">
         <span className="text-2xl leading-none">{category.icon}</span>
         <div>
