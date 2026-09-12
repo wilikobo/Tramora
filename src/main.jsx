@@ -12,6 +12,8 @@ import Activities from './pages/Activities.jsx'
 import Budget from './pages/Budget.jsx'
 import Resources from './pages/Resources.jsx'
 import Memories from './pages/Memories.jsx'
+import Checklist from './pages/Checklist.jsx'
+import Packing from './pages/Packing.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import './styles/index.css'
@@ -93,6 +95,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             element={
               <ProtectedRoute>
                 <Memories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips/:tripId/checklist"
+            element={
+              <ProtectedRoute>
+                <Checklist />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trips/:tripId/packing"
+            element={
+              <ProtectedRoute>
+                <Packing />
               </ProtectedRoute>
             }
           />

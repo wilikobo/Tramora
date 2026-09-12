@@ -533,3 +533,73 @@ create policy "auth delete own wayra-memories"
   on storage.objects for delete
   to authenticated
   using (bucket_id = 'wayra-memories' and owner = auth.uid());
+
+-- =============================================================================
+-- checklist_items (pre-trip checklist per trip)
+-- =============================================================================
+create table if not exists public.checklist_items (
+  id          uuid primary key default gen_random_uuid(),
+  trip_id     uuid not null references public.trips(id) on delete cascade,
+  category    text not null,
+  label       text not null,
+  checked     boolean not null default false,
+  checked_by  uuid references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists checklist_items_trip_idx on public.checklist_items(trip_id);
+
+alter table public.checklist_items enable row level security;
+
+drop policy if exists "members manage checklist_items" on public.checklist_items;
+create policy "members manage checklist_items"
+  on public.checklist_items
+  for all
+  to authenticated
+  using (
+    trip_id in (
+      select id from public.trips
+      where user1_id = auth.uid() or user2_id = auth.uid()
+    )
+  )
+  with check (
+    trip_id in (
+      select id from public.trips
+      where user1_id = auth.uid() or user2_id = auth.uid()
+    )
+  );
+
+-- =============================================================================
+-- packing_items (packing list per trip)
+-- =============================================================================
+create table if not exists public.packing_items (
+  id          uuid primary key default gen_random_uuid(),
+  trip_id     uuid not null references public.trips(id) on delete cascade,
+  category    text not null,
+  label       text not null,
+  packed      boolean not null default false,
+  added_by    uuid references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists packing_items_trip_idx on public.packing_items(trip_id);
+
+alter table public.packing_items enable row level security;
+
+drop policy if exists "members manage packing_items" on public.packing_items;
+create policy "members manage packing_items"
+  on public.packing_items
+  for all
+  to authenticated
+  using (
+    trip_id in (
+      select id from public.trips
+      where user1_id = auth.uid() or user2_id = auth.uid()
+    )
+  )
+  with check (
+    trip_id in (
+      select id from public.trips
+      where user1_id = auth.uid() or user2_id = auth.uid()
+    )
+  );

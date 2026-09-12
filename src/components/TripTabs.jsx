@@ -4,6 +4,8 @@ const TABS = [
   { to: '', label: 'Map', end: true },
   { to: 'activities', label: 'Activities' },
   { to: 'budget', label: 'Budget' },
+  { to: 'checklist', label: 'Checklist' },
+  { to: 'packing', label: 'Packing' },
   { to: 'resources', label: 'Resources' },
   { to: 'memories', label: 'Memories' },
 ]
